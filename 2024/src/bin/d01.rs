@@ -1,6 +1,5 @@
 use aoc2024::read_input;
 
-#[derive(Debug)]
 struct LocationLists {
     left: Vec<i64>,
     right: Vec<i64>,
