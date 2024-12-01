@@ -1,0 +1,12 @@
+data/
+input/
+inputs/
+target/
+lib/
+.clj-kondo/
+.cpcache/
+.idea/
+.lsp/
+.nrepl-port
+.DS_Store
+*.swp

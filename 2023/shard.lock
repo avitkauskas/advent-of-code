@@ -1,0 +1,14 @@
+version: 2.0
+shards:
+  bisect:
+    git: https://github.com/spider-gazelle/bisect.git
+    version: 1.2.1
+
+  matrix:
+    git: https://github.com/jacobub/matrix.git
+    version: 0.1.0+git.commit.db74e62dcc0b65e548bf1a8eda65657310f57152
+
+  priority-queue:
+    git: https://github.com/spider-gazelle/priority-queue.git
+    version: 1.0.1
+

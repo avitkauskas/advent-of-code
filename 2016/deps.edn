@@ -1,0 +1,7 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.11.4"}
+        org.clojure/data.priority-map {:mvn/version "1.1.0"}
+        org.clojure/math.combinatorics {:mvn/version "0.2.0"}
+        org.clj-commons/digest {:mvn/version "1.4.100"}
+        net.mikera/core.matrix {:mvn/version "0.63.0"}
+        data.deque/data.deque {:mvn/version "0.1.0"}}}

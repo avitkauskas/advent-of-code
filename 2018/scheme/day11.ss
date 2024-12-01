@@ -1,0 +1,60 @@
+(import (srfi-197) (matrix) (rnrs) (rnrs r5rs))
+
+(define grid-serial 7803)
+(define grid-size 300)
+
+(define (cell-power r c)
+  (chain (+ (+ c 1) 10)
+         (* _ (+ r 1))
+         (+ _ grid-serial)
+         (* _ (+ (+ c 1) 10))
+         (quotient _ 100)
+         (remainder _ 10)
+         (- _ 5)))
+
+(define grid (make-matrix grid-size grid-size))
+
+(define (fill-grid)
+  (do ((r 0 (+ r 1)))
+      ((= r grid-size))
+      (do ((c 0 (+ c 1)))
+          ((= c grid-size))
+          (matrix-set! grid r c (cell-power r c)))))
+
+(define (square-power r c size)
+  (let ((power 0))
+    (do ((rr r (+ rr 1)))
+        ((= rr (+ r size)) power)
+        (do ((cc c (+ cc 1)))
+            ((= cc (+ c size)))
+            (set! power (+ power (matrix-ref grid rr cc)))))))
+
+(define (max-power size)
+  (let ((max-loc (vector 1 1 (square-power 0 0 size))))
+    (do ((r 0 (+ r 1)))
+        ((> r (- grid-size size)) max-loc)
+        (do ((c 0 (+ c 1)))
+            ((> c (- grid-size size)))
+            (let ((power (square-power r c size)))
+              (when (> power (vector-ref max-loc 2))
+                (set! max-loc (vector (+ c 1) (+ r 1) power))))))))
+
+(define (total-power)
+  (let ((max-loc (vector 1 1 1 (square-power 0 0 1))))
+    (do
+      ((s 1 (+ s 1)))
+      ((> s grid-size) max-loc)
+      (display s) (newline)
+      (let ((pow-loc (max-power s)))
+        (when (> (vector-ref pow-loc 2) (vector-ref max-loc 3))
+          (set! max-loc
+                (vector (vector-ref pow-loc 0)
+                        (vector-ref pow-loc 1)
+                        s
+                        (vector-ref pow-loc 2))))))))
+
+(fill-grid)
+(display (max-power 3))
+(newline)
+(display (total-power))
+(newline)
