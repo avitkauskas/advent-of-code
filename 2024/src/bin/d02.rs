@@ -5,13 +5,13 @@ fn is_safe_report(report: &[i32]) -> bool {
         return true;
     }
 
-    let increasing = report.windows(2).map(|w| w[1] - w[0] > 0).all(|b| b);
-    let decreasing = report.windows(2).map(|w| w[1] - w[0] < 0).all(|b| b);
+    let diff = |w: &[i32]| w[1] - w[0];
 
-    report.windows(2).all(|w| {
-        let diff = w[1] - w[0];
-        diff.abs() >= 1 && diff.abs() <= 3
-    }) && (increasing || decreasing)
+    let increasing = report.windows(2).map(|w| diff(w) > 0).all(|b| b);
+    let decreasing = report.windows(2).map(|w| diff(w) < 0).all(|b| b);
+    let gradual_diff = report.windows(2).all(|w| (1..=3).contains(&diff(w).abs()));
+
+    gradual_diff && (increasing || decreasing)
 }
 
 fn is_safe_with_dampener(report: &[i32]) -> bool {
