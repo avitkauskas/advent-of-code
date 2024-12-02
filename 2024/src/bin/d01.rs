@@ -51,21 +51,10 @@ impl LocationLists {
     }
 }
 
-fn part1(lists: &LocationLists) -> i64 {
-    lists.calculate_total_distance()
-}
-
-fn part2(lists: &LocationLists) -> i64 {
-    lists.calculate_similarity_score()
-}
-
 fn main() {
     let input = read_input!();
     let lists = LocationLists::from_input(&input);
 
-    let result1 = part1(&lists);
-    println!("Part 1: {}", result1);
-
-    let result2 = part2(&lists);
-    println!("Part 2: {}", result2);
+    println!("Part 1: {}", lists.calculate_total_distance());
+    println!("Part 2: {}", lists.calculate_similarity_score());
 }
