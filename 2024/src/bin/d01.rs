@@ -1,60 +1,30 @@
 use aoc2024::read_input;
 
-struct LocationLists {
-    left: Vec<i64>,
-    right: Vec<i64>,
+fn parse_input(input: &str) -> (Vec<i64>, Vec<i64>) {
+    let (mut left, mut right): (Vec<i64>, Vec<i64>) = input
+        .split_whitespace()
+        .map(|n| n.parse::<i64>().unwrap())
+        .collect::<Vec<i64>>()
+        .chunks(2)
+        .map(|c| (c[0], c[1]))
+        .unzip();
+    left.sort();
+    right.sort();
+    (left, right)
 }
 
-impl LocationLists {
-    fn from_input(input: &str) -> Self {
-        let mut left = Vec::new();
-        let mut right = Vec::new();
+fn calculate_total_distance(left: &[i64], right: &[i64]) -> i64 {
+    left.iter().zip(right).map(|(a, b)| (a - b).abs()).sum()
+}
 
-        for line in input.lines() {
-            let numbers: Vec<i64> = line
-                .split_whitespace()
-                .map(|n| n.parse().unwrap())
-                .collect();
-
-            if numbers.len() == 2 {
-                left.push(numbers[0]);
-                right.push(numbers[1]);
-            }
-        }
-
-        LocationLists { left, right }
-    }
-
-    fn calculate_total_distance(&self) -> i64 {
-        let mut left_sorted = self.left.clone();
-        let mut right_sorted = self.right.clone();
-
-        left_sorted.sort();
-        right_sorted.sort();
-
-        left_sorted
-            .iter()
-            .zip(right_sorted.iter())
-            .map(|(l, r)| (l - r).abs())
-            .sum()
-    }
-
-    fn calculate_similarity_score(&self) -> i64 {
-        self.left
-            .iter()
-            .map(|&num| {
-                // Count how many times this number appears in the right list
-                let count = self.right.iter().filter(|&&x| x == num).count() as i64;
-                num * count
-            })
-            .sum()
-    }
+fn calculate_similarity_score(left: &[i64], right: &[i64]) -> i64 {
+    left.iter()
+        .map(|&n| n * right.iter().filter(|&&x| x == n).count() as i64)
+        .sum()
 }
 
 fn main() {
-    let input = read_input!();
-    let lists = LocationLists::from_input(&input);
-
-    println!("Part 1: {}", lists.calculate_total_distance());
-    println!("Part 2: {}", lists.calculate_similarity_score());
+    let (left, right) = parse_input(&read_input!());
+    println!("Part 1: {}", calculate_total_distance(&left, &right));
+    println!("Part 2: {}", calculate_similarity_score(&left, &right));
 }

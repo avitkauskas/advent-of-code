@@ -15,59 +15,30 @@ fn is_safe_report(report: &[i32]) -> bool {
 }
 
 fn is_safe_with_dampener(report: &[i32]) -> bool {
-    // Check if original report is safe
     if is_safe_report(report) {
         return true;
     }
 
-    // Try removing one number at a time and check if result is safe
-    for i in 0..report.len() {
+    (0..report.len()).any(|i| {
         let mut modified = report.to_vec();
         modified.remove(i);
-        if is_safe_report(&modified) {
-            return true;
-        }
-    }
-    false
+        is_safe_report(&modified)
+    })
 }
 
-struct Reports {
-    levels: Vec<Vec<i32>>,
-}
-
-impl Reports {
-    fn from_input(input: &str) -> Self {
-        let levels = input
-            .lines()
-            .map(|line| {
-                line.split_whitespace()
-                    .map(|n| n.parse().unwrap())
-                    .collect()
-            })
-            .collect();
-
-        Reports { levels }
-    }
-
-    fn count_safe_reports(&self) -> i32 {
-        self.levels
-            .iter()
-            .filter(|report| is_safe_report(report))
-            .count() as i32
-    }
-
-    fn count_safe_reports_with_dampener(&self) -> i32 {
-        self.levels
-            .iter()
-            .filter(|report| is_safe_with_dampener(report))
-            .count() as i32
-    }
+fn parse_input(input: &str) -> Vec<Vec<i32>> {
+    input
+        .lines()
+        .map(|l| l.split_whitespace().map(|n| n.parse().unwrap()).collect())
+        .collect()
 }
 
 fn main() {
-    let input = read_input!();
-    let reports = Reports::from_input(&input);
+    let reports = parse_input(&read_input!());
 
-    println!("Part 1: {}", reports.count_safe_reports());
-    println!("Part 2: {}", reports.count_safe_reports_with_dampener());
+    let part1 = reports.iter().filter(|r| is_safe_report(r)).count();
+    let part2 = reports.iter().filter(|r| is_safe_with_dampener(r)).count();
+
+    println!("Part 1: {}", part1);
+    println!("Part 2: {}", part2);
 }
