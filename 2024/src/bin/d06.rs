@@ -1,118 +1,78 @@
-use std::collections::HashSet;
+use num::Complex;
+use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-impl Direction {
-    fn turn_right(self) -> Self {
-        match self {
-            Self::Up => Self::Right,
-            Self::Right => Self::Down,
-            Self::Down => Self::Left,
-            Self::Left => Self::Up,
-        }
-    }
-
-    fn step(self, (row, col): (i32, i32)) -> (i32, i32) {
-        match self {
-            Self::Up => (row - 1, col),
-            Self::Right => (row, col + 1),
-            Self::Down => (row + 1, col),
-            Self::Left => (row, col - 1),
-        }
-    }
-}
-
-type Pos = (i32, i32);
-
-fn trace_path(
-    grid: &[Vec<char>],
-    start_pos: Pos,
-    start_dir: Direction,
-) -> (Vec<(Pos, Direction)>, bool) {
-    let mut path = Vec::new();
-    let mut visited_states = HashSet::new();
-    let mut pos = start_pos;
-    let mut dir = start_dir;
+// Tries to trace the path. Returns:
+// - Ok(HashSet) with visited positions if the guard exits the grid
+// - Err(true) if a loop is found
+fn solve(
+    coords: &HashMap<Complex<i32>, char>,
+    start: Complex<i32>,
+    obstruction: Option<Complex<i32>>,
+) -> Result<HashSet<Complex<i32>>, bool> {
+    let mut seen = HashSet::new();
+    let mut pos = start;
+    // Initial direction is up (-1 on y axis in our coordinate system)
+    let mut dir = Complex::new(0, -1);
 
     loop {
-        let state = (pos, dir);
-        if visited_states.contains(&state) {
-            return (path, true); // Found a loop
-        }
-        visited_states.insert(state);
-        path.push((pos, dir));
+        // Keep track of positions AND directions to detect loops
+        seen.insert((pos, dir));
 
-        let next_pos = dir.step(pos);
-
-        if next_pos.0 < 0
-            || next_pos.0 >= grid.len() as i32
-            || next_pos.1 < 0
-            || next_pos.1 >= grid[0].len() as i32
-        {
-            return (path, false); // Exit the grid
+        // Move forward until we hit an obstacle or exit
+        while let Some(&c) = coords.get(&(pos + dir)) {
+            if c == '#' || Some(pos + dir) == obstruction {
+                break;
+            }
+            pos = pos + dir;
+            seen.insert((pos, dir));
         }
 
-        if grid[next_pos.0 as usize][next_pos.1 as usize] == '#' {
-            dir = dir.turn_right();
-        } else {
-            pos = next_pos;
+        // If we're about to step outside the grid
+        if !coords.contains_key(&(pos + dir)) {
+            // Return only the positions (without directions) for counting
+            return Ok(seen.into_iter().map(|(p, _)| p).collect());
+        }
+
+        // Turn right (multiply by i for 90° rotation)
+        dir = dir * Complex::i();
+        // If we've been here facing this direction before, we found a loop
+        if seen.contains(&(pos, dir)) {
+            return Err(true);
         }
     }
 }
 
 fn main() {
     let input = aoc2024::read_input!();
-    let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
 
-    // Find start position and direction
-    let mut start_pos = (0, 0);
-    let mut start_dir = Direction::Up;
-    for (i, row) in grid.iter().enumerate() {
-        for (j, &c) in row.iter().enumerate() {
-            match c {
-                '^' => {
-                    start_pos = (i as i32, j as i32);
-                    start_dir = Direction::Up;
-                }
-                '>' => {
-                    start_pos = (i as i32, j as i32);
-                    start_dir = Direction::Right;
-                }
-                'v' => {
-                    start_pos = (i as i32, j as i32);
-                    start_dir = Direction::Down;
-                }
-                '<' => {
-                    start_pos = (i as i32, j as i32);
-                    start_dir = Direction::Left;
-                }
-                _ => {}
+    // Store the grid as a map of complex coordinates to characters
+    // This makes coordinate manipulation easier
+    let mut coords = HashMap::new();
+    let mut start = Complex::new(0, 0);
+
+    // Parse input into coordinate map
+    for (y, line) in input.lines().enumerate() {
+        for (x, c) in line.chars().enumerate() {
+            let pos = Complex::new(x as i32, y as i32);
+            coords.insert(pos, c);
+            if c == '^' {
+                start = pos;
             }
         }
     }
 
-    // Part 1: Get the original path
-    let (path, _) = trace_path(&grid, start_pos, start_dir);
-    let mut visited: HashSet<_> = path.iter().map(|&(pos, _)| pos).collect();
+    // Part 1: Find all positions the guard visits before exiting
+    let visited = solve(&coords, start, None).unwrap();
     println!("Part 1: {}", visited.len());
 
-    // Part 2: Remove start position from visited positions and check each for loops
-    visited.remove(&start_pos);
+    // Part 2: For each visited position (except start):
+    // - Try placing an obstacle there
+    // - Check if this creates a loop
+    let loop_count = visited
+        .iter()
+        .filter(|&&pos| pos != start)
+        .filter(|&&pos| solve(&coords, start, Some(pos)).is_err())
+        .count();
 
-    let mut loop_count = 0;
-    for pos in visited {
-        let mut test_grid = grid.clone();
-        test_grid[pos.0 as usize][pos.1 as usize] = '#';
-        let (_, has_loop) = trace_path(&test_grid, start_pos, start_dir);
-        if has_loop {
-            loop_count += 1;
-        }
-    }
     println!("Part 2: {}", loop_count);
 }
