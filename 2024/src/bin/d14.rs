@@ -33,8 +33,7 @@ fn find_triangle_pattern(positions: &HashMap<(i32, i32), i32>, width: i32, heigh
             continue;
         }
 
-        if positions.contains_key(&(x, y))
-            && positions.contains_key(&(x - 1, y + 1))
+        if positions.contains_key(&(x - 1, y + 1))
             && positions.contains_key(&(x, y + 1))
             && positions.contains_key(&(x + 1, y + 1))
             && positions.contains_key(&(x - 2, y + 2))
