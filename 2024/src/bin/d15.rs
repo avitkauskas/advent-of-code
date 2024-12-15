@@ -28,7 +28,7 @@ fn find_boxes(coords: &Grid, pos: Coord, dir: Coord) -> Grid {
     result
 }
 
-fn solve(field: &str) -> i32 {
+fn solve(field: &str, moves: &str) -> i32 {
     let mut coords: Grid = HashMap::new();
 
     // Parse the field into coordinates
@@ -55,12 +55,6 @@ fn solve(field: &str) -> i32 {
     ]
     .into_iter()
     .collect();
-
-    let moves = aoc2024::read_input!()
-        .split("\n\n")
-        .nth(1)
-        .unwrap()
-        .replace('\n', "");
 
     for mv in moves.chars() {
         let dir = dir_map[&mv];
@@ -98,10 +92,11 @@ fn solve(field: &str) -> i32 {
 
 fn main() {
     let input = aoc2024::read_input!();
-    let (field, _) = input.split_once("\n\n").unwrap();
+    let (field, moves) = input.split_once("\n\n").unwrap();
+    let moves = moves.replace('\n', "");
 
     // Part 1
-    println!("Part1: {}", solve(field));
+    println!("Part1: {}", solve(field, &moves));
 
     // Part 2
     let field2 = field
@@ -109,5 +104,5 @@ fn main() {
         .replace('O', "[]")
         .replace('.', "..")
         .replace('@', "@.");
-    println!("Part2: {}", solve(&field2));
+    println!("Part2: {}", solve(&field2, &moves));
 }
