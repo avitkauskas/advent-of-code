@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 fn next_secret(mut secret: i64) -> i64 {
     let val = secret * 64;
@@ -16,73 +16,50 @@ fn next_secret(mut secret: i64) -> i64 {
     secret
 }
 
-fn get_nth_secret(initial: i64, n: usize) -> i64 {
-    let mut secret = initial;
-    for _ in 0..n {
-        secret = next_secret(secret);
-    }
-    secret
-}
+fn find_solutions(initial_secrets: &[i64]) -> (i64, i32) {
+    let mut pattern_sums = HashMap::new();
+    let mut part1 = 0;
 
-fn generate_sequence(initial: i64, count: usize) -> Vec<(i32, i32)> {
-    let mut sequence = Vec::with_capacity(count + 1);
-    let mut secret = initial;
-    let mut prev_digit = (secret % 10) as i32;
-    sequence.push((prev_digit, 0));
+    for &initial in initial_secrets {
+        let mut secret = initial;
+        let mut prev_digit = (secret % 10) as i32;
+        let mut seen = HashSet::new();
+        let mut change_pattern = [10; 4]; // Start with impossible changes
 
-    for _ in 0..count {
-        secret = next_secret(secret);
-        let curr_digit = (secret % 10) as i32;
-        let change = curr_digit - prev_digit;
-        sequence.push((curr_digit, change));
-        prev_digit = curr_digit;
-    }
-    sequence
-}
+        for _ in 0..2000 {
+            secret = next_secret(secret);
+            let curr_digit = (secret % 10) as i32;
+            let change = curr_digit - prev_digit;
 
-type Pattern = [i32; 4];
+            change_pattern.copy_within(1.., 0);
+            change_pattern[3] = change;
 
-fn find_best_sequence(initial_secrets: &[i64]) -> i32 {
-    let all_sequences: Vec<Vec<(i32, i32)>> = initial_secrets
-        .iter()
-        .map(|&init| generate_sequence(init, 2000))
-        .collect();
+            if seen.insert(change_pattern) {
+                pattern_sums
+                    .entry(change_pattern)
+                    .or_insert_with(Vec::new)
+                    .push(curr_digit);
+            }
 
-    // Map pattern to vector of prices (one per sequence where pattern appears)
-    let mut pattern_prices: HashMap<Pattern, Vec<i32>> = HashMap::new();
-
-    for sequence in all_sequences.iter() {
-        let mut seen_patterns = HashMap::new();
-
-        for window in sequence.windows(4) {
-            let pattern = [window[0].1, window[1].1, window[2].1, window[3].1];
-            // Store only first price for each pattern in this sequence
-            seen_patterns.entry(pattern).or_insert_with(|| {
-                pattern_prices.entry(pattern).or_default().push(window[3].0);
-            });
+            prev_digit = curr_digit;
         }
+        part1 += secret;
     }
 
-    // Find pattern with highest sum of first prices
-    pattern_prices
+    let part2 = pattern_sums
         .values()
         .map(|prices| prices.iter().sum())
         .max()
-        .unwrap_or(0)
+        .unwrap_or(0);
+
+    (part1, part2)
 }
 
 fn main() {
     let input = aoc2024::read_input!();
     let initial_secrets: Vec<i64> = input.lines().map(|line| line.parse().unwrap()).collect();
 
-    // Part 1
-    let result1: i64 = initial_secrets
-        .iter()
-        .map(|&initial| get_nth_secret(initial, 2000))
-        .sum();
-    println!("Part 1: {}", result1);
-
-    // Part 2
-    let total = find_best_sequence(&initial_secrets);
-    println!("Part 2: {}", total);
+    let (part1, part2) = find_solutions(&initial_secrets);
+    println!("Part 1: {}", part1);
+    println!("Part 2: {}", part2);
 }
