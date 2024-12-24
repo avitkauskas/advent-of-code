@@ -106,7 +106,7 @@ impl Circuit {
         wire.starts_with('x') || wire.starts_with('y') || wire.starts_with('z')
     }
 
-    fn find_swapped_gates(&self) -> Vec<String> {
+    fn find_swapped_gates(&self) -> String {
         let mut wrong = HashSet::new();
         let highest_z = self
             .gates
@@ -160,7 +160,7 @@ impl Circuit {
 
         let mut result: Vec<_> = wrong.into_iter().collect();
         result.sort();
-        result
+        result.join(",")
     }
 }
 
@@ -169,5 +169,5 @@ fn main() {
     let circuit = Circuit::new(&input);
 
     println!("Part 1: {}", circuit.simulate());
-    println!("Part 2: {}", circuit.find_swapped_gates().join(","));
+    println!("Part 2: {}", circuit.find_swapped_gates());
 }
