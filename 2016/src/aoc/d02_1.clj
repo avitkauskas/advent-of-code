@@ -19,7 +19,7 @@
 (defn- process-line
   [{:keys [code start]} line]
   (let [[x y] (reduce move start line)
-        code (+ (* 10 code) (+ (* 3 y) x 1))]
+        code (+ (* 10 code) (* 3 y) x 1)]
     {:code code :start [x y]}))
 
 (defn -main []
