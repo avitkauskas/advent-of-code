@@ -1,0 +1,17 @@
+module Day01
+
+open Utils
+
+let input = Input.readInputLines ()
+
+let part1 lines =
+    // TODO: implement part 1
+    0
+
+let part2 lines =
+    // TODO: implement part 2
+    0
+
+let run () =
+    printfn "Day 01 - Part 1: %d" (part1 input)
+    printfn "Day 01 - Part 2: %d" (part2 input)
