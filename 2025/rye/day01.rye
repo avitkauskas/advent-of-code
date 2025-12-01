@@ -4,28 +4,27 @@ parse-line: fn { line } {
   n: line .rest .to-integer
   either line .first = "L" { negate n } { n } }
 
-normalize: fn1 { % 100 |when { < 0 } { + 100 } }
-
 moves: lines .map { .parse-line }
 start: 50
 
 part1: fold moves 'acc [ start 0 ] 
   { ::m 
-    [ acc .first + m |normalize ::new-pos 
-      acc .second |when { new-pos = 0 } { .inc } ] 
+    [ ( acc .first + m ) % 100 ::new-pos 
+      acc .second |when { new-pos .is-zero } { .inc } ] 
   } |second
 
 count-zeros: fn { pos mov } {
-  d: pos 
-    |when { mov > 0 } { - 100 |negate }
-    |when { = 0 } { 100 }
+  d: either mov .is-positive 
+       { ( 100 - pos ) % 100 }
+       { ( 100 + pos ) % 100 }
+     |when { = 0 } { 100 }
   m: math/abs mov
   either m < d { 0 } { 1 + ( m - d ) // 100 }
 }
 
 part2: fold moves 'acc [ start 0 ]
   { ::m 
-    [ acc .first + m |normalize
+    [ ( acc .first + m ) % 100
       acc .second + count-zeros acc .first m ]
   } |second
 
