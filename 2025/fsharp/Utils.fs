@@ -11,12 +11,12 @@ let private ensureFileExists filename =
         Environment.Exit(1)
 
 let readInputLinesForDay dayNumber =
-    let filename = sprintf "Inputs/day%02d.txt" dayNumber
+    let filename = sprintf "../inputs/day%02d.txt" dayNumber
     ensureFileExists filename
     File.ReadAllLines filename |> Array.toList
 
 let readInputTextForDay dayNumber =
-    let filename = sprintf "Inputs/day%02d.txt" dayNumber
+    let filename = sprintf "../inputs/day%02d.txt" dayNumber
     ensureFileExists filename
     File.ReadAllText filename
 
