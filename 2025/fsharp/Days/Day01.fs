@@ -2,14 +2,9 @@ module Day01
 
 open Utils
 
-let input = Input.readInputLines ()
-
 let parseLine (s: string) =
     let n = int s.[1..]
     if s.[0] = 'L' then -n else n
-
-let moves = input |> List.map parseLine
-let startPos = 50
 
 let part1 moves startPos =
     let _, zeroCount =
@@ -42,5 +37,9 @@ let part2 moves startPos =
     zeroCount
 
 let run () =
+    let input = Input.readInputLines ()
+    let moves = input |> List.map parseLine
+    let startPos = 50
+
     printfn "Day 01 - Part 1: %d" (part1 moves startPos)
     printfn "Day 01 - Part 2: %d" (part2 moves startPos)

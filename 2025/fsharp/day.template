@@ -2,16 +2,16 @@ module Day{dayStr}
 
 open Utils
 
-let input = Input.readInputLines ()
-
-let part1 lines = 
+let part1 lines =
     // TODO: implement part 1
     0
 
-let part2 lines = 
+let part2 lines =
     // TODO: implement part 2
     0
 
 let run () =
+    let input = Input.readInputLines ()
+
     printfn "Day {dayStr} - Part 1: %d" (part1 input)
     printfn "Day {dayStr} - Part 2: %d" (part2 input)
