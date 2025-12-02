@@ -1,0 +1,37 @@
+ranges: Read %../inputs/day02.txt |trim
+  |split "," |map { .split "-" |map { .to-integer } }
+
+sum-invalid-part1: fn { ranges } {
+  ranges |map fn { r } {
+    range first r second r |filter { 
+      .to-string ::str |length? ::len | // 2 ::idx
+      all [ 
+        is-zero len % 2
+        substring str 0 idx |= substring str idx len
+      ]
+    } |sum
+  } |sum
+}
+
+sum-invalid-part2: fn { ranges } {
+  ranges |map fn { r } {
+    range first r second r |filter { 
+      .to-string ::str |length? ::len
+      idx:: len // 2 i:: 1
+      invalid:: false
+      while { not invalid |and i <= idx } { 
+        either is-zero len % i
+        { s:: substring str 0 i
+          n:: decr len // i
+          either str = produce n s { ++ s }
+          { invalid:: true }
+          { i:: i + 1 }
+        }
+        { i:: i + 1 } 
+      } invalid
+    } |sum
+  } |sum
+}
+
+print sum-invalid-part1 ranges
+print sum-invalid-part2 ranges
