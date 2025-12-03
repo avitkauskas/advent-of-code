@@ -3,19 +3,15 @@ digit-lines: Read\lines %../inputs/day03.txt
 
 max-joltage: fn { digits k } {
   length: digits .length?
-  pos:: 1 remaining-digits:: k joltage:: 0
+  idx:: 0 remaining-digits:: k joltage:: 0
   loop k {
-    digit:: range pos 1 + length - remaining-digits
-      |map { ::i [ i digits .nth i ] } 
-      |sort\by fn { a b } { 
-        either ( second a |> second b ) 
-          { true }
-          { if ( second a |= second b ) { first a |< first b } }
-      } |first
-    pos:: digit .first + 1
+    max-idx:: 0 max-val:: -1
+    span:: digits |rest\from idx |head 1 + length - idx + remaining-digits
+    for\idx span 'i { ::v > max-val |if { max-idx:: i max-val:: v } }
+    idx:: idx + max-idx + 1
     remaining-digits:: remaining-digits - 1
-    joltage:: digit .second + 10 * joltage
-  } joltage
+    joltage:: max-val + 10 * joltage
+  }
 }
 
 digit-lines .map { .max-joltage  2 } |sum |print
