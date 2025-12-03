@@ -5,7 +5,7 @@ max-joltage: fn { digits k } {
   length: digits .length?
   idx:: 0 remaining-digits:: k joltage:: 0
   loop k {
-    max-idx:: 0 max-val:: -1
+    max-idx:: 0 max-val:: 0
     span:: digits |rest\from idx |head 1 + length - idx + remaining-digits
     for\idx span 'i { ::v > max-val |if { max-idx:: i max-val:: v } }
     idx:: idx + max-idx + 1
