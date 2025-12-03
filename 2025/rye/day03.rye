@@ -1,0 +1,23 @@
+digit-lines: Read\lines %../inputs/day03.txt
+  |map { .split "" |map { .to-integer } }
+
+pick-max: fn { digits k } {
+  n: digits .length?
+  fold\do range 1 k 'acc [ 1 k 0 ] {
+    s:: acc .first
+    r:: acc .second
+    a:: acc .third
+    m:: range s 1 + n - r
+      |map { ::i [ i digits .nth i ] } 
+      |sort\by fn { a b } { 
+        either ( second a |> second b ) 
+          { true }
+          { if ( second a |= second b ) { first a |< first b } }
+      } |first
+    [ ( m .first + 1 ) ( r - 1 ) ( m .second + 10 * a ) ]
+  } |third
+}
+
+digit-lines .map { .pick-max  2 } |sum |print
+digit-lines .map { .pick-max 12 } |sum |print
+

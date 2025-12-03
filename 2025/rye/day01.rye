@@ -7,7 +7,7 @@ parse-line: fn { line } {
 moves: lines .map { .parse-line }
 start: 50
 
-part1: fold moves 'acc [ start 0 ] 
+part1: fold\do moves 'acc [ start 0 ] 
   { ::m 
     [ ( acc .first + m ) % 100 ::new-pos 
       acc .second |when { new-pos .is-zero } { .inc } ] 
@@ -22,7 +22,7 @@ count-zeros: fn { pos mov } {
   either m < d { 0 } { 1 + ( m - d ) // 100 }
 }
 
-part2: fold moves 'acc [ start 0 ]
+part2: fold\do moves 'acc [ start 0 ]
   { ::m 
     [ ( acc .first + m ) % 100
       acc .second + count-zeros acc .first m ]

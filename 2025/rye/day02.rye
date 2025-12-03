@@ -22,7 +22,7 @@ sum-invalid-part2: fn { ranges } {
       while { not invalid |and i <= idx } { 
         either is-zero len % i
         { s:: substring str 0 i
-          n:: decr len // i
+          n:: dec len // i
           either str = produce n s { ++ s }
           { invalid:: true }
           { i:: i + 1 }
