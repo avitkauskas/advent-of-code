@@ -9,7 +9,7 @@ let parseLine (s: string) =
 let part1 moves startPos =
     let _, zeroCount =
         moves
-        |> List.fold
+        |> Array.fold
             (fun (pos, count) move ->
                 let newPos = (pos + move) % 100
                 let newCount = if newPos = 0 then count + 1 else count
@@ -27,7 +27,7 @@ let countZeroDuringRotation pos move =
 let part2 moves startPos =
     let _, zeroCount =
         moves
-        |> List.fold
+        |> Array.fold
             (fun (pos, count) move ->
                 let newPos = (pos + move) % 100
                 let newCount = countZeroDuringRotation pos move
@@ -38,7 +38,7 @@ let part2 moves startPos =
 
 let run () =
     let input = Input.readInputLines ()
-    let moves = input |> List.map parseLine
+    let moves = input |> Array.map parseLine
     let startPos = 50
 
     printfn "Day 01 - Part 1: %d" (part1 moves startPos)

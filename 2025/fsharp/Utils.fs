@@ -13,7 +13,7 @@ let private ensureFileExists filename =
 let readInputLinesForDay dayNumber =
     let filename = sprintf "../inputs/day%02d.txt" dayNumber
     ensureFileExists filename
-    File.ReadAllLines filename |> Array.toList
+    File.ReadAllLines filename
 
 let readInputTextForDay dayNumber =
     let filename = sprintf "../inputs/day%02d.txt" dayNumber
