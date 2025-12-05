@@ -4,14 +4,14 @@ merge-ranges: fn { ranges } {
   |sort\by fn { a b } { a .first < b .first }
   |fold\do 'acc { } { ::rng
     either is-empty acc
+    { append! [ rng ] ref acc }
+    { acc .last ::lst
+      either rng .first <= lst .second
+      { fst:: lst .first
+        snd:: max [ lst .second rng .second ]
+        append! [ [ fst snd ] ] ref head acc dec acc .length? }
       { append! [ rng ] ref acc }
-      { acc .last ::lst
-        either rng .first <= lst .second
-          { fst:: lst .first
-            snd:: max [ lst .second rng .second ]
-            append! [ [ fst snd ] ] ref head acc dec acc .length? }
-          { append! [ rng ] ref acc }
-      }
+    } 
   }
 }
 
