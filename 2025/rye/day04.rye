@@ -1,0 +1,35 @@
+lines:: Read\lines %../inputs/day04.txt 
+field:: lines |map { .split "" } |unpack
+
+rows: lines |length?
+cols: lines .nth 1 |length?
+row?: fn { i } { i .dec // cols |inc }
+col?: fn { i } { i .dec %  cols |inc }
+rc-i: fn { r c } { c + cols * r .dec }
+
+neighbor-offsets: { { -1 -1 } { -1 0 } { -1 1 } { 0 -1 } { 0 1 } { 1 -1 } { 1 0 } { 1 1 } }
+
+count-neighbors: fn { i } {
+  neighbor-offsets .map { ::offset
+    r:: row? i |+ offset .first
+    c:: col? i |+ offset .second
+    choose all { r > 0 r <= rows c > 0 c <= cols field .nth rc-i r c |= "@" } { 1 0 }
+  } |sum
+}
+
+removable-rolls: fn { field } {
+  removable:: { }
+  for\pos field 'i { ::roll
+    if all { roll = "@" count-neighbors i |< 4 } {
+      removable:: concat removable i 
+    }
+  } removable
+} 
+
+removable-rolls field ::removable |length? |print ;part1
+
+produce\while { not removable .is-empty } removable .length? { ::n
+  for removable { ::i change\nth! ref field i "." }
+  removable:: removable-rolls field
+  n + removable .length?
+} |print ;part2
