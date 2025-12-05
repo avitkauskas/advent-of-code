@@ -19,8 +19,8 @@ count-neighbors: fn { i } {
 
 removable-rolls: fn { field } {
   removable:: { }
-  for\pos field 'i { ::roll
-    if all { roll = "@" count-neighbors i |< 4 } {
+  for\pos field 'i { ::cell
+    if all { cell = "@" count-neighbors i |< 4 } {
       removable:: concat removable i 
     }
   } removable
@@ -29,7 +29,7 @@ removable-rolls: fn { field } {
 removable-rolls field ::removable |length? |print ;part1
 
 produce\while { not removable .is-empty } removable .length? { ::n
-  for removable { ::i change\nth! ref field i "." }
+  for removable { .change\nth!* ref field "." }
   removable:: removable-rolls field
   n + removable .length?
 } |print ;part2
