@@ -1,0 +1,30 @@
+blocks: Read %../inputs/day05.txt |trim |split "\n\n"
+
+merge-ranges: fn { ranges } {
+  |sort\by fn { a b } { a .first < b .first }
+  |fold\do 'acc { } { ::rng
+    either is-empty acc
+      { append! [ rng ] ref acc }
+      { acc .last ::lst
+        either rng .first <= lst .second
+          { fst:: lst .first
+            snd:: max [ lst .second rng .second ]
+            append! [ [ fst snd ] ] ref head acc dec acc .length? }
+          { append! [ rng ] ref acc }
+      }
+  }
+}
+
+is-fresh: fn { id ranges } {
+  choose any map ranges { ::rng and id >= rng .first id <= rng .second } { 1 0 }
+}
+
+ranges: blocks .first |split "\n" 
+  |map { .split "-" |map { .to-integer } }
+  |merge-ranges
+
+ids: blocks .second |split "\n"
+  |map { .to-integer }
+
+part1: sum\by ids { .is-fresh ranges } |print
+part2: sum\by ranges { ::rng 1 + rng .second - rng .first } |print
