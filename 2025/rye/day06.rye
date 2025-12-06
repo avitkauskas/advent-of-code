@@ -1,0 +1,33 @@
+lines: Read\lines %../inputs/day06.txt |reverse
+
+splitted: lines .map { |trim |split\many " " }
+num-cols: splitted .rest |map { .map { .to-integer } } |transpose
+ops: splitted .first
+
+part-1: ops .map\idx 'i { 
+  .switch {
+    "+" [ num-cols -> i |sum ]
+    "*" [ num-cols -> i |mul ]
+  }
+} |sum |print
+
+cells: lines .rest  |map { .split "" } |reverse
+ops-idx: lines .first |map\idx 'i { ::v [ v i ] } |purge { .first = " " }
+ops-len: ops-idx |length?
+max-idx: cells -> 0 |length? |dec
+num-rng: ops-idx .map\pos 'p { ::r
+  s:: second r
+  e:: either p < ops-len { nth ops-idx p .inc |second - 2 } { max-idx }
+  [ s e ]
+}
+
+read-num: fn { i } { map cells { -> i } |join |trim |to-integer }
+
+part-2: ops-idx .map\idx 'i { .first ::op
+  rng:: num-rng -> i s:: rng .first e:: rng .second
+  nums:: range s e |map { .read-num }
+  switch op {
+    "+" { nums .sum }
+    "*" { nums .mul }
+  }
+} |sum |print
