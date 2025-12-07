@@ -1,0 +1,40 @@
+lines: Read\lines %../inputs/day07.txt
+field: lines .rest |map { .split "" }
+
+splitters: field .map { ::chars
+  pos:: { }
+  chars .for\pos 'p { = "^" |if { pos:: concat pos [ p ] } }
+  pos
+}
+
+width: lines ~> 1 |length?
+start: lines ~> 1 |position? "S"
+
+beams:: [ start ]
+splits:: 0
+
+for splitters {
+  .intersection beams ::hits
+  splits:: splits + hits .length?
+  straight-beams:: beams .difference hits
+  split-beams:: hits .map { ::p [ dec p inc p ] } |unpack
+  beams:: straight-beams .union split-beams
+}
+
+splits |print ; part-1
+
+counts:: produce width { } { .concat [ 0 ] }
+change\nth! ref counts start 1
+
+for field { ::line
+  new-counts:: produce width { } { .concat [ 0 ] }
+  for\pos counts 'p { ::n
+    either "^" = ( line ~> p )
+    { change\nth! ref new-counts dec p n + ( new-counts ~> dec p )
+      change\nth! ref new-counts inc p n + ( new-counts ~> inc p ) }
+    { change\nth! ref new-counts p n + ( new-counts ~> p ) }
+  }
+  counts:: new-counts
+}
+
+counts |sum |print ; part-2
