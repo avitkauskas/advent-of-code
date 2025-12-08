@@ -1,6 +1,5 @@
 lines: Read\lines %../inputs/day08.txt
 points: lines .map { .split "," |map { .to-integer } }
-
 points-len: points .length?
 
 dist-sq: fn { a b } {
@@ -42,6 +41,7 @@ edges .head 1000 |for { ::e union-e e .second e .third }
 range 1 points-len |for { .find-r }
 parents |group { .to-string } |values |map { .length? }
   |sort |tail 3 |fold\do 'acc 1 { * acc } |print
+  ; |sort |tail 3 |mul |print
 
 ;; part 2
 
@@ -52,10 +52,10 @@ find-last-edge: does {
       union-e e .second e .third
       components:: dec components
       if components = 1 { return e }
-    }
-  }
-}
+} } }
 
 parents:: range 1 points-len
 last-edge: find-last-edge
+; match-block last-edge { d a b }
+; ( points ~> a ) .first * ( points ~> b ) .first |print
 ( points ~> last-edge .second ) .first * ( points ~> last-edge .third ) .first |print
