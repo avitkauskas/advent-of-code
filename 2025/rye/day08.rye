@@ -1,0 +1,61 @@
+lines: Read\lines %../inputs/day08.txt
+points: lines .map { .split "," |map { .to-integer } }
+
+points-len: points .length?
+
+dist-sq: fn { a b } {
+  match-block a { x1 y1 z1 }
+  match-block b { x2 y2 z2 }
+  [ ( x1 - x2 ) * ( x1 - x2 )
+    ( y1 - y2 ) * ( y1 - y2 )
+    ( z1 - z2 ) * ( z1 - z2 ) ] .sum
+}
+
+edges: do { 
+  var 'a ref { }
+  for range 1 points-len - 1 { ::i
+    for range i + 1 points-len { ::j
+      append! [ dist-sq ( points ~> i ) ( points ~> j ) i j ] 'a
+    }
+  } a .deref .sort\by fn { a b } { a .first |< b .first }
+}
+
+find-r: fn { e } {
+  either e = ( parents ~> e )
+  { e } 
+  { r: find-r ( parents ~> e )
+    change\nth! ref parents e r 
+    r
+  }
+}
+
+union-e: fn { a b } {
+  ra: find-r a
+  rb: find-r b
+  change\nth! ref parents ra rb
+}
+
+;; part 1
+
+parents:: range 1 points-len
+edges .head 1000 |for { ::e union-e e .second e .third }
+range 1 points-len |for { .find-r }
+parents |group { .to-string } |values |map { .length? }
+  |sort |tail 3 |fold\do 'acc 1 { * acc } |print
+
+;; part 2
+
+find-last-edge: does { 
+  components:: points-len
+  edges .for { ::e 
+    if not ( find-r e .second ) = ( find-r e .third ) {
+      union-e e .second e .third
+      components:: dec components
+      if components = 1 { return e }
+    }
+  }
+}
+
+parents:: range 1 points-len
+last-edge: find-last-edge
+( points ~> last-edge .second ) .first * ( points ~> last-edge .third ) .first |print
