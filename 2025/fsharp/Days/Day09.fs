@@ -1,94 +1,103 @@
 module Day09
 
-open System
-open System.Collections.Generic
 open Utils
 
-let parsePoint (line: string) =
-    let parts = line.Split(',')
-    int64 parts.[0], int64 parts.[1]
+type Segment =
+    | Horizontal of y: int64 * xMin: int64 * xMax: int64
+    | Vertical of x: int64 * yMin: int64 * yMax: int64
 
-let rectangleArea (x1: int64, y1: int64) (x2: int64, y2: int64) =
+let parsePoint (line: string) =
+    match line.Split(',') with
+    | [| x; y |] -> int64 x, int64 y
+    | _ -> failwith "Invalid point format"
+
+let rectangleArea (x1, y1) (x2, y2) =
     (abs (x1 - x2) + 1L) * (abs (y1 - y2) + 1L)
 
-let buildSegments (points: (int64 * int64)[]) =
-    let n = points.Length
-    let horiz, vert = ResizeArray(), ResizeArray()
+let buildSegments points =
+    let makeSegment (x1, y1) (x2, y2) =
+        match x1 = x2, y1 = y2 with
+        | true, false -> Vertical(x1, min y1 y2, max y1 y2)
+        | false, true -> Horizontal(y1, min x1 x2, max x1 x2)
+        | _ -> failwith "Non axis-aligned edge"
 
-    for i in 0 .. n - 1 do
-        let (x1, y1), (x2, y2) = points.[i], points.[(i + 1) % n]
+    points
+    |> Array.pairwise
+    |> Array.append [| Array.last points, Array.head points |]
+    |> Array.map (fun (p1, p2) -> makeSegment p1 p2)
+    |> Array.partition (function
+        | Horizontal _ -> true
+        | Vertical _ -> false)
 
-        if x1 = x2 then
-            let ymin, ymax = min y1 y2, max y1 y2
-            vert.Add(x1, ymin, ymax)
-        elif y1 = y2 then
-            let xmin, xmax = min x1 x2, max x1 x2
-            horiz.Add(y1, xmin, xmax)
-        else
-            failwith "Non axis-aligned edge encountered."
+let pointOnSegment px py segment =
+    match segment with
+    | Horizontal(y, xMin, xMax) -> py = y && px >= xMin && px <= xMax
+    | Vertical(x, yMin, yMax) -> px = x && py >= yMin && py <= yMax
 
-    horiz.ToArray(), vert.ToArray()
+let isOnBoundary (px, py) horizontal vertical =
+    Array.exists (pointOnSegment px py) horizontal
+    || Array.exists (pointOnSegment px py) vertical
 
-let pointOnBoundary (px: int64, py: int64) horiz vert =
-    Array.exists (fun (y, xmin, xmax) -> py = y && px >= xmin && px <= xmax) horiz
-    || Array.exists (fun (x, ymin, ymax) -> px = x && py >= ymin && py <= ymax) vert
+let rayCrossesSegment px py segment =
+    match segment with
+    | Vertical(xv, yMin, yMax) -> xv > px && yMin <= py && py < yMax
+    | Horizontal _ -> false
 
-let pointInsideOrOn (px: int64, py: int64) horiz vert =
-    if pointOnBoundary (px, py) horiz vert then
-        true
+let isInside (px, py) horizontal vertical =
+    isOnBoundary (px, py) horizontal vertical
+    || (vertical
+        |> Array.filter (rayCrossesSegment px py)
+        |> Array.length
+        |> fun count -> count % 2 = 1)
+
+let crossesVerticalEdge xEdge yMin yMax segment =
+    match segment with
+    | Horizontal(y, xMin, xMax) -> y > yMin && y < yMax && xMin <= xEdge && xEdge <= xMax
+    | Vertical _ -> false
+
+let crossesHorizontalEdge yEdge xMin xMax segment =
+    match segment with
+    | Vertical(x, yMin, yMax) -> x > xMin && x < xMax && yMin <= yEdge && yEdge <= yMax
+    | Horizontal _ -> false
+
+let rectangleInsidePolygon (x1, y1) (x2, y2) horizontal vertical =
+    let xMin, xMax = min x1 x2, max x1 x2
+    let yMin, yMax = min y1 y2, max y1 y2
+
+    let corners = [| (xMin, yMin); (xMin, yMax); (xMax, yMin); (xMax, yMax) |]
+    let cornersValid = Array.forall (fun p -> isInside p horizontal vertical) corners
+
+    if not cornersValid then
+        false
     else
-        let crossings =
-            vert
-            |> Array.filter (fun (xv, ymin, ymax) -> xv > px && ymin <= py && py < ymax)
+        not (
+            Array.exists (crossesVerticalEdge xMin yMin yMax) horizontal
+            || Array.exists (crossesVerticalEdge xMax yMin yMax) horizontal
+            || Array.exists (crossesHorizontalEdge yMin xMin xMax) vertical
+            || Array.exists (crossesHorizontalEdge yMax xMin xMax) vertical
+        )
 
-        crossings.Length % 2 = 1
+let findMaxArea points selector =
+    let n = Array.length points
 
-let verticalEdgeProperlyCrosses (xr: int64) (ylo: int64) (yhi: int64) horiz =
-    Array.exists (fun (y, xmin, xmax) -> y > ylo && y < yhi && xmin <= xr && xr <= xmax) horiz
+    seq {
+        for i in 0 .. n - 2 do
+            for j in i + 1 .. n - 1 -> selector points.[i] points.[j]
+    }
+    |> Seq.max
 
-let horizontalEdgeProperlyCrosses (yr: int64) (xlo: int64) (xhi: int64) vert =
-    Array.exists (fun (x, ymin, ymax) -> x > xlo && x < xhi && ymin <= yr && yr <= ymax) vert
+let part1 points = findMaxArea points rectangleArea
 
-let rectangleInsideOrOn (x1: int64, y1: int64) (x2: int64, y2: int64) horiz vert =
-    let xmin, xmax = min x1 x2, max x1 x2
-    let ymin, ymax = min y1 y2, max y1 y2
+let part2 points =
+    let horizontal, vertical = buildSegments points
 
-    let cornersInside =
-        [ (xmin, ymin); (xmin, ymax); (xmax, ymin); (xmax, ymax) ]
-        |> List.forall (fun p -> pointInsideOrOn p horiz vert)
-
-    cornersInside
-    && not (
-        verticalEdgeProperlyCrosses xmin ymin ymax horiz
-        || verticalEdgeProperlyCrosses xmax ymin ymax horiz
-        || horizontalEdgeProperlyCrosses ymin xmin xmax vert
-        || horizontalEdgeProperlyCrosses ymax xmin xmax vert
-    )
-
-let part1 (points: (int64 * int64)[]) =
-    let n = points.Length
-
-    [ for i in 0 .. n - 2 do
-          for j in i + 1 .. n - 1 do
-              yield rectangleArea points.[i] points.[j] ]
-    |> List.max
-
-let part2 (points: (int64 * int64)[]) =
-    let horiz, vert = buildSegments points
-    let n = points.Length
-
-    [ for i in 0 .. n - 2 do
-          let (x1, y1) = points.[i]
-
-          for j in i + 1 .. n - 1 do
-              let (x2, y2) = points.[j]
-
-              if x1 <> x2 && y1 <> y2 && rectangleInsideOrOn (x1, y1) (x2, y2) horiz vert then
-                  yield rectangleArea (x1, y1) (x2, y2) ]
-    |> List.max
+    findMaxArea points (fun p1 p2 ->
+        if rectangleInsidePolygon p1 p2 horizontal vertical then
+            rectangleArea p1 p2
+        else
+            0L)
 
 let run () =
-    let lines = Input.readInputLines ()
-    let points = lines |> Array.map parsePoint
+    let points = Input.readInputLines () |> Array.map parsePoint
     printfn "Day 09 - Part 1: %d" (part1 points)
     printfn "Day 09 - Part 2: %d" (part2 points)
