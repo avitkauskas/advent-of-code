@@ -1,0 +1,33 @@
+points: Read\lines %../inputs/day09.txt |map { .split ","  |map { .to-integer } }
+edges: zip points points .rest ++ [ points .first ]
+
+no-cross-edge: fn { xs ys } {
+  match-block xs { x1 x2 }
+  match-block ys { y1 y2 }
+  for edges { .match-block { { e1x e1y } { e2x e2y } }
+    if any {
+      all { x1 < e1x  e1x < x2  max [ y1  min [ e1y e2y ] ] |< min [ y2  max [ e1y e2y ] ] }
+      all { y1 < e1y  e1y < y2  max [ x1  min [ e1x e2x ] ] |< min [ x2  max [ e1x e2x ] ] }
+    } { return false }
+  } true
+}
+
+part-1:: 0 
+part-2:: 0
+
+for points { .match-block { p1x p1y }
+  for points { .match-block { p2x p2y }
+    match-block sort [ p1x p2x ] { x1 x2 }
+    match-block sort [ p1y p2y ] { y1 y2 }
+    area:: ( 1 + math/abs x1 - x2 ) * ( 1 + math/abs y1 - y2 )
+
+    part-1:: max [ part-1 area ]
+
+    if all { area > part-2  no-cross-edge [ x1 x2 ] [ y1 y2 ] } {
+      part-2:: area
+    }
+  }
+}
+
+print part-1
+print part-2
