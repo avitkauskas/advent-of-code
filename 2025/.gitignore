@@ -1,0 +1,14 @@
+# Python version files
+**/.python_version
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# .NET / F# build outputs
+**/bin/
+**/obj/
+
+# OS files
+.DS_Store
