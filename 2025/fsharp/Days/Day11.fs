@@ -3,15 +3,14 @@ module Day11
 open System.Collections.Generic
 open Utils
 
-let parse lines =
+let parse (lines: string[]) : IDictionary<string, list<string>> =
     lines
     |> Array.map (fun line ->
-        let p = line.Split(": ")
-        p.[0], p.[1].Split(' ') |> Array.toList)
+        let p: string[] = line.Split ": "
+        p.[0], p.[1].Split ' ' |> Array.toList)
     |> dict
 
 let countPaths (g: IDictionary<string, list<string>>) start req =
-    // req = [] or [a; b]
     let a, b =
         match req with
         | [] -> "", ""
@@ -24,7 +23,6 @@ let countPaths (g: IDictionary<string, list<string>>) start req =
         if stack.Contains node then
             0L
         else
-
             let sa, sb = sa || node = a, sb || node = b
             let key = node, sa, sb
 
@@ -33,7 +31,7 @@ let countPaths (g: IDictionary<string, list<string>>) start req =
             | _ ->
                 let res =
                     if node = "out" then
-                        if req.IsEmpty || (sa && sb) then 1L else 0L
+                        if req.IsEmpty || sa && sb then 1L else 0L
                     else
                         stack.Add node |> ignore
                         let sum = g.[node] |> List.sumBy (fun c -> dfs c sa sb stack)
@@ -47,6 +45,5 @@ let countPaths (g: IDictionary<string, list<string>>) start req =
 
 let run () =
     let g = parse (Input.readInputLines ())
-
     printfn "Day 11 - Part 1: %d" (countPaths g "you" [])
     printfn "Day 11 - Part 2: %d" (countPaths g "svr" [ "dac"; "fft" ])
