@@ -5,6 +5,7 @@ target/
 lib/
 .clj-kondo/
 .cpcache/
+.gos-cache
 .idea/
 .lsp/
 .nrepl-port

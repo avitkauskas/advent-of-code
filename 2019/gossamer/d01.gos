@@ -1,0 +1,26 @@
+fn parse_input(path: String) -> Vec<i64> {
+    fs::read_to_string(path)?.lines().map(|line| line.parse()?)
+}
+
+fn calculate_fuel(mass: i64) -> i64 {
+    let mut total = 0
+    let mut current_mass = mass
+
+    while current_mass > 0 {
+        let fuel = ((current_mass / 3) - 2) |> max(0)
+        total += fuel
+        current_mass = fuel
+    }
+
+    total
+}
+
+fn main() {
+    let modules = parse_input("../input/d01.txt")
+
+    let part1 = modules.map(|mass| mass / 3 - 2).sum()
+    let part2 = modules.map(calculate_fuel).sum()
+
+    println!("Part 1: {}", part1)
+    println!("Part 2: {}", part2)
+}

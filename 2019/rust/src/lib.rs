@@ -16,6 +16,6 @@ pub fn read_input(bin_path: &str) -> String {
         .unwrap()
         .replace(".rs", ".txt");
 
-    fs::read_to_string(Path::new("input").join(&file_name))
+    fs::read_to_string(Path::new("../input").join(&file_name))
         .unwrap_or_else(|_| panic!("Failed to read input file: {}", file_name))
 }
