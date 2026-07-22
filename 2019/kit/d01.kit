@@ -1,0 +1,22 @@
+import Auth.File.{file-auth, file-read-auth}
+import Seq
+
+fuel = fn(n) => n / 3 - 2
+
+parse-and-sum = fn(acc, s) =>
+  n = Int.parse s ?!
+  acc + fuel n
+
+parse-calc-and-sum = fn(acc, s) =>
+  n = Int.parse s ?!
+  c = Seq.iterate (fn(x) => max (fuel x) 0 ) (fuel n)
+    |>> Seq.take-while Int.positive?
+    |>> Seq.fold add 0
+  acc + c
+
+main = fn(env) =>
+  read-auth = file-read-auth (file-auth env.root)
+
+  using read-auth =>
+    println (File.fold-lines "../input/d01.txt" parse-and-sum 0 ?!)
+    println (File.fold-lines "../input/d01.txt" parse-calc-and-sum 0 ?!)
