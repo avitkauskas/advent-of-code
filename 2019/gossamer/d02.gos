@@ -1,5 +1,6 @@
 fn parse_input(path: String) -> [i64] {
-    fs::read_to_string(path)?.trim().split(',').map(|s| s.parse()?)
+    fs::read_to_string(path).unwrap()
+        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
 }
 
 fn run_intcode(program: &mut [i64]) -> i64 {

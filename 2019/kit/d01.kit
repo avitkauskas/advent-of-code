@@ -5,7 +5,7 @@ fuel-one = fn(n) =>
   n / 3 - 2
 
 fuel-rec = fn(n) =>
-  Seq.iterate (fn(x) => max (fuel-one x) 0 ) (fuel-one n)
+  Seq.iterate (fn(x) => max (fuel-one x) 0) (fuel-one n)
     |>> Seq.take-while Int.positive?
     |>> Seq.fold add 0
 
