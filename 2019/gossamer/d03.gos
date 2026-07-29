@@ -1,0 +1,71 @@
+use std::fs
+
+fn main() {
+    let wires = fs::read_to_string("../input/d03.txt").unwrap().lines()
+    println!("Part1: {}", solve_part1(wires))
+    println!("Part2: {}", solve_part2(wires))
+}
+
+struct Point {
+    x: i32
+    y: i32
+}
+
+impl Point {
+    fn manhattan_distance(self) -> i64 {
+        self.x.abs() + self.y.abs()
+    }
+}
+
+pub fn solve_part1(wires: Vec<String>) -> i64 {
+    let (wire1_points, _) = trace_wire(wires[0])
+    let (wire2_points, _) = trace_wire(wires[1])
+
+    wire1_points
+        .intersection(wire2_points)
+        .iter()
+        .map(|point| point.manhattan_distance())
+        .min()
+        .unwrap()
+}
+
+pub fn solve_part2(wires: Vec<String>) -> i64 {
+    let (wire1_points, wire1_steps) = trace_wire(wires[0])
+    let (wire2_points, wire2_steps) = trace_wire(wires[1])
+
+    wire1_points
+        .intersection(&wire2_points)
+        .iter()
+        .map(|point| wire1_steps.get(point).unwrap() + wire2_steps.get(point).unwrap())
+        .min()
+        .unwrap()
+}
+
+fn trace_wire(path: String) -> (HashSet<Point>, HashMap<Point, i64>) {
+    let mut points = HashSet::new()
+    let mut steps = HashMap::new()
+    let mut current = Point { x: 0, y: 0 }
+    let mut total_steps = 0
+
+    for instruction in path.split(',') {
+        let (direction, distance) = (instruction[..1], instruction[1..])
+        let distance: i64 = distance.parse::<i64>().unwrap()
+
+        for i in 0..distance {
+            match direction {
+                "R" => current.x += 1
+                "L" => current.x -= 1
+                "U" => current.y += 1
+                "D" => current.y -= 1
+                _ => panic!("Invalid direction")
+            }
+            total_steps += 1
+            points.insert(current)
+            if !steps.contains_key(current) {
+                steps.insert(current, total_steps)
+            }
+        }
+    }
+
+    (points, steps)
+}

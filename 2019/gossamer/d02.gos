@@ -1,75 +1,63 @@
+use std::fs
+
 fn parse_input(path: String) -> [i64] {
     fs::read_to_string(path).unwrap()
         .trim().split(',').map(|s| s.parse::<i64>().unwrap())
 }
 
-fn run_intcode(program: &mut [i64]) -> i64 {
-    let mut position = 0
+fn program_step(program: &mut [i64], pos: i64, op: i64) {
+    let p1 = program[pos + 1]
+    let p2 = program[pos + 2]
+    let tg = program[pos + 3]
+    match op {
+        1 => program[tg] = program[p1] + program[p2]
+        2 => program[tg] = program[p1] * program[p2]
+        _ => panic!("Unknown opcode encountered!")
+    }
+}
 
-    while position < program.len() {
-        match program[position] {
+fn run_intcode(program: [i64], v1: i64, v2: i64) -> i64 {
+    let mut program = program
+    program[1] = v1
+    program[2] = v2
+
+    let mut pos = 0
+
+    while pos < program.len() {
+        match program[pos] {
             99 => break,
-            1 => {
-                let pos1 = program[position + 1]
-                let pos2 = program[position + 2]
-                let output_pos = program[position + 3]
-                program[output_pos] = program[pos1] + program[pos2]
-            }
-            2 => {
-                let pos1 = program[position + 1]
-                let pos2 = program[position + 2]
-                let output_pos = program[position + 3]
-                program[output_pos] = program[pos1] * program[pos2]
-            }
-            _ => panic!("Unknown opcode encountered!")
+            op => program_step(&mut program, pos, op)
         }
-        position += 4
+        pos += 4
     }
 
     program[0]
 }
 
-const TARGET: i64 = 19_690_720
+fn solve_part1(program: [i64]) -> i64 {
+    run_intcode(program, 12, 2)
+}
 
-fn find_noun_verb(original_program: [i64]) -> Option<(i64, i64)> {
+fn solve_part2(program: [i64]) -> Option<i64> {
+    const TARGET: i64 = 19_690_720
+
     for noun in 0..=99 {
         for verb in 0..=99 {
-            let program = &mut original_program.clone()
-            program[1] = noun
-            program[2] = verb
-
-            let mut code = run_intcode(program)
+            let mut code = run_intcode(program, noun, verb)
             if code == TARGET {
-                return Some((noun, verb))
+                return Some(100 * noun + verb)
             }
         }
     }
     None
 }
 
-fn part1(program: [i64]) -> i64 {
-    let modified_program = &mut program.clone()
-    modified_program[1] = 12
-    modified_program[2] = 2
-    run_intcode(modified_program)
-}
-
-fn part2(program: [i64]) -> Option<i64> {
-    match find_noun_verb(program) {
-        Some((noun, verb)) => Some(100 * noun + verb)
-        None => None
-    }
-}
-
 fn main() {
     let program = parse_input("../input/d02.txt")
 
-    // Solve part 1
-    println!("Part 1: Value at position 0: {}", part1(program))
+    let part1 = solve_part1(program)
+    println!("Part 1: Value at position 0: {}", part1)
 
-    // Solve part 2
-    match part2(program) {
-        Some(result) => println!("Part 2: 100 * noun + verb = {}", result)
-        None => println!("Part 2: No solution found!")
-    }
+    let part2 = solve_part2(program)
+    println!("Part 2: 100 * noun + verb = {}", part2.unwrap_or(-1))
 }

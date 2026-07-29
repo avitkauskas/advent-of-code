@@ -1,3 +1,5 @@
+use std::fs
+
 fn parse_input(path: String) -> Vec<i64> {
     fs::read_to_string(path).unwrap()
         .lines().map(|line| line.parse::<i64>().unwrap())

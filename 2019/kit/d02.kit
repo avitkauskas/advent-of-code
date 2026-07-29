@@ -1,0 +1,54 @@
+import Auth.File.{file-auth, file-read-auth}
+
+parse-input = fn(read-auth: FileReadAuth) =>
+  using read-auth =>
+    File.read "../input/d02.txt"
+      |> Result.unwrap
+      |> String.trim
+      |> String.split ","
+      |>> map Int.parse
+      |>> map Result.unwrap
+
+step = fn(program, pos) =>
+  p1 = nth (pos + 1) program |> Option.unwrap
+  p2 = nth (pos + 2) program |> Option.unwrap
+  tg = nth (pos + 3) program |> Option.unwrap
+  v1 = nth p1 program |> Option.unwrap
+  v2 = nth p2 program |> Option.unwrap
+  op = nth pos program |> Option.unwrap
+  match op
+    | 1 -> program |>> List.set tg (v1 + v2)
+    | 2 -> program |>> List.set tg (v1 * v2)
+    | _ -> program
+
+rec-intcode = fn(program, pos) =>
+  match nth pos program
+    | None | Some(99) -> first program
+    | _ -> rec-intcode (step program pos) (pos + 4)
+
+run-intcode = fn(program, v1, v2) =>
+  program
+    |>> List.set 1 v1
+    |>> List.set 2 v2
+    |> rec-intcode 0
+
+solve-part1 = fn(program) =>
+  run-intcode program 12 2
+
+solve-part2 = fn(program, noun, verb) =>
+  code = run-intcode program noun verb
+  match (code, noun, verb)
+  | (19690720, _, _) -> 100 * noun + verb
+  | (_, _, _) when verb < 99 -> solve-part2 program noun (verb + 1)
+  | (_, _, _) when noun < 99 -> solve-part2 program (noun + 1) 0
+  | _ -> -1
+
+main = fn(env) =>
+  read-auth = file-read-auth (file-auth env.root)
+  program = parse-input read-auth
+
+  part1 = solve-part1 program
+  println "Part 1: Value at position 0: ${part1}"
+
+  part2 = solve-part2 program 0 0 
+  println "Part 2: 100 * noun + verb = ${part2}"
