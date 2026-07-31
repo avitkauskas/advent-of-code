@@ -1,0 +1,70 @@
+fn main() {
+    let start = 125730
+    let end = 579381
+
+    let result1 = solve_part1(start, end)
+    println!("Part 1 - Number of valid passwords: {}", result1)
+
+    let result2 = solve_part2(start, end)
+    println!("Part 2 - Number of valid passwords: {}", result2)
+}
+
+fn solve_part1(start: i64, end: i64) -> i64 {
+    let mut count = 0
+    for num in start..=end {
+        let digits = num.to_string().chars()
+        if never_decreases(digits) && has_adjacent_digits(digits) {
+            count += 1
+        }
+    }
+    count
+}
+
+fn solve_part2(start: i64, end: i64) -> i64 {
+    let mut count = 0
+    for num in start..=end {
+        let digits = num.to_string().chars()
+        if never_decreases(digits) && has_exact_double(digits) {
+            count += 1
+        }
+    }
+    count
+}
+
+fn has_adjacent_digits(digits: Vec<char>) -> bool {
+    for i in 0..digits.len() - 1 {
+        if digits[i] == digits[i + 1] {
+            return true
+        }
+    }
+    false
+}
+
+fn has_exact_double(digits: Vec<char>) -> bool {
+    let mut i = 0
+    while i < digits.len() {
+        let digit = digits[i]
+        let mut count = 1
+
+        // Count consecutive occurrences of the current digit
+        while i + 1 < digits.len() && digits[i + 1] == digit {
+            count += 1
+            i += 1
+        }
+
+        if count == 2 {
+            return true
+        }
+        i += 1
+    }
+    false
+}
+
+fn never_decreases(digits: Vec<char>) -> bool {
+    for i in 0..digits.len() - 1 {
+        if digits[i] > digits[i + 1] {
+            return false
+        }
+    }
+    true
+}

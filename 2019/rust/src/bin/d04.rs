@@ -12,7 +12,8 @@ fn main() {
 fn solve_part1(start: i32, end: i32) -> i32 {
     let mut count = 0;
     for num in start..=end {
-        if never_decreases(num) && has_adjacent_digits(num) {
+        let digits: Vec<char> = num.to_string().chars().collect();
+        if never_decreases(&digits) && has_adjacent_digits(&digits) {
             count += 1;
         }
     }
@@ -22,15 +23,15 @@ fn solve_part1(start: i32, end: i32) -> i32 {
 fn solve_part2(start: i32, end: i32) -> i32 {
     let mut count = 0;
     for num in start..=end {
-        if never_decreases(num) && has_exact_double(num) {
+        let digits: Vec<char> = num.to_string().chars().collect();
+        if never_decreases(&digits) && has_exact_double(&digits) {
             count += 1;
         }
     }
     count
 }
 
-fn has_adjacent_digits(num: i32) -> bool {
-    let digits: Vec<char> = num.to_string().chars().collect();
+fn has_adjacent_digits(digits: &Vec<char>) -> bool {
     for i in 0..digits.len() - 1 {
         if digits[i] == digits[i + 1] {
             return true;
@@ -39,8 +40,7 @@ fn has_adjacent_digits(num: i32) -> bool {
     false
 }
 
-fn has_exact_double(num: i32) -> bool {
-    let digits: Vec<char> = num.to_string().chars().collect();
+fn has_exact_double(digits: &Vec<char>) -> bool {
     let mut i = 0;
     while i < digits.len() {
         let digit = digits[i];
@@ -60,8 +60,7 @@ fn has_exact_double(num: i32) -> bool {
     false
 }
 
-fn never_decreases(num: i32) -> bool {
-    let digits: Vec<char> = num.to_string().chars().collect();
+fn never_decreases(digits: &Vec<char>) -> bool {
     for i in 0..digits.len() - 1 {
         if digits[i] > digits[i + 1] {
             return false;
