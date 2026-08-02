@@ -1,4 +1,4 @@
-use std::fs
+// use std::fs
 
 struct IntcodeComputer {
     memory: Vec<i64>
@@ -31,11 +31,11 @@ impl IntcodeComputer {
         modes
     }
 
-    fn get_param(self, offset: i64, modes: [i64]) -> i64 {
+    fn get_param(self, offset: i64, modes: Vec<i64>) -> i64 {
         let value = self.memory[self.position + offset]
         match modes[offset - 1] {
             0 => self.read_memory(value) // position mode
-            1 => value                  // immediate mode
+            1 => value                   // immediate mode
             _ => panic!("Unknown parameter mode")
         }
     }
@@ -135,7 +135,7 @@ impl IntcodeComputer {
     }
 }
 
-fn run_amplifier_sequence(program: Vec<i64>, phase_settings: [i64]) -> i64 {
+fn run_amplifier_sequence(program: Vec<i64>, phase_settings: Vec<i64>) -> i64 {
     let mut signal = 0
 
     // Run each amplifier in sequence
@@ -147,14 +147,16 @@ fn run_amplifier_sequence(program: Vec<i64>, phase_settings: [i64]) -> i64 {
     signal
 }
 
-fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: [i64]) -> i64 {
+fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i64 {
     let mut amplifiers = Vec::from([IntcodeComputer::new(program); 5])
 
     // Initialize first amplifier separately
+    // let mut signal = amplifiers[0].run(Vec::from([phase_settings[0], 0]))
     let mut signal = IntcodeComputer::run(&mut amplifiers[0], Vec::from([phase_settings[0], 0]))
 
     // Initialize remaining amplifiers
     for i in 1..5 {
+        // signal = amplifiers[i].run(Vec::from([phase_settings[i], signal]))
         signal = IntcodeComputer::run(&mut amplifiers[i], Vec::from([phase_settings[i], signal]))
     }
 
@@ -163,16 +165,23 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: [i64]) -> i64 
     // Continue running until all amplifiers halt
     loop {
         for i in 0..5 {
-            if amplifiers[i].is_halted() {
+            // if amplifiers[i].is_halted() {
+            //     continue
+            // }
+            if IntcodeComputer::is_halted(amplifiers[i]) {
                 continue
             }
+
             signal = IntcodeComputer::run(&mut amplifiers[i], Vec::from([signal]))
             if i == 4 {
                 final_amplifier_output = signal
             }
         }
 
-        if amplifiers.all(|amp| amp.is_halted()) {
+        // if amplifiers.all(|amp| amp.is_halted()) {
+        //     break
+        // }
+        if amplifiers.all(|amp| IntcodeComputer::is_halted(amp)) {
             break
         }
     }
@@ -180,7 +189,7 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: [i64]) -> i64 
     final_amplifier_output
 }
 
-fn permutations(xs: [i64]) -> Vec<[i64]> {
+fn permutations(xs: Vec<i64>) -> Vec<Vec<i64>> {
     if xs.len() <= 1 {
         return Vec::from([xs])
     }
@@ -200,7 +209,7 @@ fn permutations(xs: [i64]) -> Vec<[i64]> {
 fn find_max_thruster_signal(
     program: Vec<i64>
     phase_range: Vec<i64>
-    run_amplifiers: fn(Vec<i64>, [i64]) -> i64
+    run_amplifiers: fn(Vec<i64>, Vec<i64>) -> i64
 ) -> i64 {
     permutations(phase_range)
         .map(|phase_settings| run_amplifiers(program, phase_settings))
@@ -209,11 +218,11 @@ fn find_max_thruster_signal(
 }
 
 fn solve_part1(program: Vec<i64>) -> i64 {
-    find_max_thruster_signal(program, [0, 1, 2, 3, 4], run_amplifier_sequence)
+    find_max_thruster_signal(program, Vec::from([0, 1, 2, 3, 4]), run_amplifier_sequence)
 }
 
 fn solve_part2(program: Vec<i64>) -> i64 {
-    find_max_thruster_signal(program, [5, 6, 7, 8, 9], run_amplifier_feedback_loop)
+    find_max_thruster_signal(program, Vec::from([5, 6, 7, 8, 9]), run_amplifier_feedback_loop)
 }
 
 fn main() {
