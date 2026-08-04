@@ -1,4 +1,5 @@
-use std::fs
+// use std::fs
+use Iterator
 
 struct IntcodeComputer {
     memory: Vec<i64>
@@ -181,16 +182,17 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
     final_amplifier_output
 }
 
-fn permutations(xs: Vec<i64>) -> Vec<Vec<i64>> {
-    if xs.len() <= 1 {
-        return Vec::from([xs])
+fn permutations(it: Iterator<i64>) -> Vec<Vec<i64>> {
+    let vec = it.collect()
+    if vec.len() <= 1 {
+        return Vec::from([vec])
     }
     let mut result = Vec::new()
-    for i in 0..xs.len() {
-        let mut rest = xs.clone()
+    for i in 0..vec.len() {
+        let mut rest = vec
         let Ok(_) = rest.remove(i)
-        for p in permutations(rest) {
-            let mut perm = Vec::from([xs[i]])
+        for p in permutations(rest.iter()) {
+            let mut perm = Vec::from([vec[i]])
             perm.extend(p)
             result.push(perm)
         }
@@ -200,7 +202,7 @@ fn permutations(xs: Vec<i64>) -> Vec<Vec<i64>> {
 
 fn find_max_thruster_signal(
     program: Vec<i64>
-    phase_range: Vec<i64>
+    phase_range: Iterator<i64>
     run_amplifiers: fn(Vec<i64>, Vec<i64>) -> i64
 ) -> i64 {
     permutations(phase_range)
@@ -210,16 +212,16 @@ fn find_max_thruster_signal(
 }
 
 fn solve_part1(program: Vec<i64>) -> i64 {
-    find_max_thruster_signal(program, Vec::from([0, 1, 2, 3, 4]), run_amplifier_sequence)
+    find_max_thruster_signal(program, 0..5, run_amplifier_sequence)
 }
 
 fn solve_part2(program: Vec<i64>) -> i64 {
-    find_max_thruster_signal(program, Vec::from([5, 6, 7, 8, 9]), run_amplifier_feedback_loop)
+    find_max_thruster_signal(program, 5..10, run_amplifier_feedback_loop)
 }
 
 fn main() {
-    let input = fs::read_to_string("../input/d07.txt").unwrap()
-    // let input = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
+    // let input = fs::read_to_string("../input/d07.txt").unwrap()
+    let input = "3,52,1001,52,-5,52,3,53,1,52,56,54,1007,54,5,55,1005,55,26,1001,54,-5,54,1105,1,12,1,53,54,53,1008,54,0,55,1001,55,1,55,2,53,55,53,4,53,1001,56,-1,56,1005,56,6,99,0,0,0,0,10"
 
     let program: Vec<i64> = input
         .trim()
