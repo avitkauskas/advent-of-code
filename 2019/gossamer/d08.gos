@@ -1,0 +1,47 @@
+// use std::fs
+use std::iter
+
+// const ROWS: i64 = 6
+// const COLS: i64 = 25
+const ROWS: i64 = 2
+const COLS: i64 = 2
+
+fn main() {
+    // let input = fs::read_to_string("../input/d08.txt").unwrap().trim()
+    let input = "0222112222120000"
+    let layers = input.chars().chunks(ROWS * COLS)
+
+    let min_layer_idx =
+        layers
+        .map(|layer| layer.count_of('0'))
+        .enumerate()
+        .min_by_key(|t| t.1)
+        .unwrap()
+        .get(0)
+        .unwrap()
+
+    let min_layer = layers[min_layer_idx]
+
+    let part1 = min_layer.count_of('1') * min_layer.count_of('2')
+    println!("Part1:\n{}\n", part1)
+
+    let pixels = (0..ROWS * COLS).map(|i| pixel_color(i, layers)).collect()
+    println!("Part2:")
+    print_picture(pixels)
+}
+
+fn pixel_color(pixel: i64, layers: Vec<Vec<char>>) -> char {
+    layers
+        |> _.map(|layer| layer[pixel])
+        |> iter::skip_while(|e| e == '2')
+        |> _.first()
+        |> _.unwrap()
+}
+
+fn print_picture(pixels: Vec<char>) {
+    pixels
+        .map(|pixel| if pixel == '1' { '#' } else { ' ' })
+        .chunks(COLS)
+        .map(|chunk| chunk.join(""))
+        .for_each(println)
+}
