@@ -1,5 +1,4 @@
 // use std::fs
-use std::iter
 
 // const ROWS: i64 = 6
 // const COLS: i64 = 25
@@ -11,16 +10,14 @@ fn main() {
     let input = "0222112222120000"
     let layers = input.chars().chunks(ROWS * COLS)
 
-    let min_layer_idx =
-        layers
+    let min_layer_index = layers
         .map(|layer| layer.count_of('0'))
         .enumerate()
-        .min_by_key(|t| t.1)
-        .unwrap()
-        .get(0)
+        .min_by_key(|(_, count)| count)
+        .map(|(index, _)| index)
         .unwrap()
 
-    let min_layer = layers[min_layer_idx]
+    let min_layer = layers[min_layer_index]
 
     let part1 = min_layer.count_of('1') * min_layer.count_of('2')
     println!("Part1:\n{}\n", part1)
@@ -32,10 +29,10 @@ fn main() {
 
 fn pixel_color(pixel: i64, layers: Vec<Vec<char>>) -> char {
     layers
-        |> _.map(|layer| layer[pixel])
-        |> iter::skip_while(|e| e == '2')
-        |> _.first()
-        |> _.unwrap()
+        .map(|layer| layer[pixel])
+        .skip_while(|e| e == '2')
+        .first()
+        .unwrap()
 }
 
 fn print_picture(pixels: Vec<char>) {
