@@ -11,8 +11,8 @@ fn main() {
     println!("Minimum number of orbital transfers required: {}", result2)
 }
 
-fn parse_input(input: str) -> HashMap<String, String> {
-    let mut orbit_map: HashMap<String, String> = {}
+fn parse_input(input: str) -> Map<String, String> {
+    let mut orbit_map: Map<String, String> = {}
     for line in input.lines() {
         let parts = line.split(')')
         if parts.len() == 2 {
@@ -22,14 +22,14 @@ fn parse_input(input: str) -> HashMap<String, String> {
     orbit_map
 }
 
-fn solve_part1(orbit_map: HashMap<String, String>) -> u64 {
+fn solve_part1(orbit_map: Map<String, String>) -> u64 {
     orbit_map
         .keys()
         .map(|object| count_orbits(orbit_map, object))
         .sum()
 }
 
-fn count_orbits(orbit_map: HashMap<String, String>, object: String) -> u64 {
+fn count_orbits(orbit_map: Map<String, String>, object: String) -> u64 {
     let mut count = 0u64
     let mut current = object
 
@@ -41,13 +41,13 @@ fn count_orbits(orbit_map: HashMap<String, String>, object: String) -> u64 {
     count
 }
 
-fn solve_part2(orbit_map: HashMap<String, String>) -> u64 {
+fn solve_part2(orbit_map: Map<String, String>) -> u64 {
     // Get the paths from YOU and SAN to COM
     let you_path = get_path_to_com(orbit_map, "YOU")
     let san_path = get_path_to_com(orbit_map, "SAN")
 
     // Convert SAN path to set for finding common ancestors
-    let mut san_set = HashSet::from(san_path)
+    let mut san_set = Set::from(san_path)
 
     // Find the first common ancestor
     let first_common = you_path
@@ -64,7 +64,7 @@ fn solve_part2(orbit_map: HashMap<String, String>) -> u64 {
     (you_distance + san_distance)
 }
 
-fn get_path_to_com(orbit_map: HashMap<String, String>, start: String) -> Vec<String> {
+fn get_path_to_com(orbit_map: Map<String, String>, start: String) -> Vec<String> {
     let mut path = Vec::new()
     let mut current = start
 

@@ -21,7 +21,7 @@ impl IntcodeComputer {
     }
 
     fn get_parameter_modes(self, instruction: i64) -> [i64; 3] {
-        let mut modes = #[0; 3]
+        let mut modes = [0; 3]
         let mut mode_bits = instruction / 100
         for i in 0..3 {
             modes[i] = mode_bits % 10

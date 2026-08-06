@@ -151,11 +151,11 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
     let mut amplifiers = Vec::from([IntcodeComputer::new(program); 5])
 
     // Initialize first amplifier separately
-    let mut signal = amplifiers[0].run([phase_settings[0], 0])
+    let mut signal = amplifiers[0].run(#[phase_settings[0], 0])
 
     // Initialize remaining amplifiers
     for i in 1..5 {
-        signal = amplifiers[i].run([phase_settings[i], signal])
+        signal = amplifiers[i].run(#[phase_settings[i], signal])
     }
 
     let mut final_amplifier_output = signal
@@ -167,7 +167,7 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
                 continue
             }
 
-            signal = amplifiers[i].run([signal])
+            signal = amplifiers[i].run(#[signal])
             if i == 4 {
                 final_amplifier_output = signal
             }

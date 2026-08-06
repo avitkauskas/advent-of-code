@@ -41,9 +41,9 @@ pub fn solve_part2(wires: Vec<String>) -> i64 {
         .unwrap()
 }
 
-fn trace_wire(path: String) -> (HashSet<Point>, HashMap<Point, i64>) {
-    let mut points = HashSet::new()
-    let mut steps = HashMap::new()
+fn trace_wire(path: String) -> (Set<Point>, Map<Point, i64>) {
+    let mut points = Set::new()
+    let mut steps = Map::new()
     let mut current = Point { x: 0, y: 0 }
     let mut total_steps = 0
 
