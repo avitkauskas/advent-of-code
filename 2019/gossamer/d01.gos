@@ -14,7 +14,7 @@ fn fuel_rec(mass: i64) -> i64 {
     let mut current_mass = mass
 
     while current_mass > 0 {
-        let fuel = fuel_one(current_mass) |> max(0)
+        let fuel = fuel_one(current_mass).max(0)
         total += fuel
         current_mass = fuel
     }

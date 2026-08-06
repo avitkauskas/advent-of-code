@@ -1,6 +1,6 @@
 fn main() {
-    let start = 125730
-    let end = 579381
+    let start = 125_730
+    let end = 579_381
 
     let result1 = solve_part1(start, end)
     println!("Part 1 - Number of valid passwords: {}", result1)

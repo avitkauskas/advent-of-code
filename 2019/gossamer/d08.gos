@@ -1,13 +1,10 @@
-// use std::fs
+use std::fs
 
-// const ROWS: i64 = 6
-// const COLS: i64 = 25
-const ROWS: i64 = 2
-const COLS: i64 = 2
+const ROWS: i64 = 6
+const COLS: i64 = 25
 
 fn main() {
-    // let input = fs::read_to_string("../input/d08.txt").unwrap().trim()
-    let input = "0222112222120000"
+    let input = fs::read_to_string("../input/d08.txt").unwrap().trim()
     let layers = input.chars().chunks(ROWS * COLS)
 
     let min_layer_index = layers

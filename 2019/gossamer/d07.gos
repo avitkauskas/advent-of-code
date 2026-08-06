@@ -1,5 +1,4 @@
 use std::fs
-use Iterator
 
 struct IntcodeComputer {
     memory: Vec<i64>
@@ -13,17 +12,17 @@ struct IntcodeComputer {
 impl IntcodeComputer {
     fn new(program: Vec<i64>) -> Self {
         IntcodeComputer {
-            memory: program.clone()
+            memory: program
             position: 0
             last_output: 0
-            inputs: Vec::new()
+            inputs: #[]
             input_position: 0
             halted: false
         }
     }
 
-    fn get_parameter_modes(self, instruction: i64) -> Vec<i64> {
-        let mut modes = Vec::from([0; 3])
+    fn get_parameter_modes(self, instruction: i64) -> [i64; 3] {
+        let mut modes = [0; 3]
         let mut mode_bits = instruction / 100
         for i in 0..3 {
             modes[i] = mode_bits % 10
@@ -32,7 +31,7 @@ impl IntcodeComputer {
         modes
     }
 
-    fn get_param(self, offset: i64, modes: Vec<i64>) -> i64 {
+    fn get_param(self, offset: i64, modes: [i64; 3]) -> i64 {
         let value = self.memory[self.position + offset]
         match modes[offset - 1] {
             0 => self.read_memory(value) // position mode
@@ -142,7 +141,7 @@ fn run_amplifier_sequence(program: Vec<i64>, phase_settings: Vec<i64>) -> i64 {
     // Run each amplifier in sequence
     for phase in phase_settings {
         let mut computer = IntcodeComputer::new(program)
-        signal = computer.run(Vec::from([phase, signal]))
+        signal = computer.run(#[phase, signal])
     }
 
     signal
@@ -152,11 +151,11 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
     let mut amplifiers = Vec::from([IntcodeComputer::new(program); 5])
 
     // Initialize first amplifier separately
-    let mut signal = amplifiers[0].run(Vec::from([phase_settings[0], 0]))
+    let mut signal = amplifiers[0].run([phase_settings[0], 0])
 
     // Initialize remaining amplifiers
     for i in 1..5 {
-        signal = amplifiers[i].run(Vec::from([phase_settings[i], signal]))
+        signal = amplifiers[i].run([phase_settings[i], signal])
     }
 
     let mut final_amplifier_output = signal
@@ -168,7 +167,7 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
                 continue
             }
 
-            signal = amplifiers[i].run(Vec::from([signal]))
+            signal = amplifiers[i].run([signal])
             if i == 4 {
                 final_amplifier_output = signal
             }
@@ -185,14 +184,14 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
 fn permutations(it: Iterator<i64>) -> Vec<Vec<i64>> {
     let vec = it.collect()
     if vec.len() <= 1 {
-        return Vec::from([vec])
+        return #[vec]
     }
-    let mut result = Vec::new()
+    let mut result = #[]
     for i in 0..vec.len() {
         let mut rest = vec
         let Ok(_) = rest.remove(i)
         for p in permutations(rest.iter()) {
-            let mut perm = Vec::from([vec[i]])
+            let mut perm = #[vec[i]]
             perm.extend(p)
             result.push(perm)
         }

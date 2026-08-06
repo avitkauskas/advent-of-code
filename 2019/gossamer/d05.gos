@@ -1,6 +1,6 @@
 use std::fs
 
-fn parse_input(path: String) -> [i64] {
+fn parse_input(path: String) -> Vec<i64> {
     fs::read_to_string(path).unwrap()
         .trim().split(',').map(|s| s.parse::<i64>().unwrap())
 }
@@ -20,8 +20,8 @@ impl IntcodeComputer {
         }
     }
 
-    fn get_parameter_modes(self, instruction: i64) -> Vec<i64> {
-        let mut modes = [0; 3]
+    fn get_parameter_modes(self, instruction: i64) -> [i64; 3] {
+        let mut modes = #[0; 3]
         let mut mode_bits = instruction / 100
         for i in 0..3 {
             modes[i] = mode_bits % 10
@@ -30,7 +30,7 @@ impl IntcodeComputer {
         modes
     }
 
-    fn get_param(self, offset: usize, modes: [i64]) -> i64 {
+    fn get_param(self, offset: usize, modes: [i64; 3]) -> i64 {
         let value = self.memory[self.position + offset]
         match modes[offset - 1] {
             // position mode

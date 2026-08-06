@@ -34,7 +34,7 @@ pub fn solve_part2(wires: Vec<String>) -> i64 {
     let (wire2_points, wire2_steps) = trace_wire(wires[1])
 
     wire1_points
-        .intersection(&wire2_points)
+        .intersection(wire2_points)
         .iter()
         .map(|point| wire1_steps.get(point).unwrap() + wire2_steps.get(point).unwrap())
         .min()

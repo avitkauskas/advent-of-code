@@ -12,7 +12,7 @@ fn main() {
 }
 
 fn parse_input(input: str) -> HashMap<String, String> {
-    let mut orbit_map: HashMap<String, String> = HashMap::new()
+    let mut orbit_map: HashMap<String, String> = {}
     for line in input.lines() {
         let parts = line.split(')')
         if parts.len() == 2 {
@@ -47,9 +47,7 @@ fn solve_part2(orbit_map: HashMap<String, String>) -> u64 {
     let san_path = get_path_to_com(orbit_map, "SAN")
 
     // Convert SAN path to set for finding common ancestors
-    let mut san_set = HashSet::new()
-    for node in san_path { san_set.insert(node) }
-    // let san_set: HashSet<_> = san_path.collect()
+    let mut san_set = HashSet::from(san_path)
 
     // Find the first common ancestor
     let first_common = you_path
