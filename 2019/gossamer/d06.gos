@@ -1,7 +1,8 @@
-use std::fs
+// use std::fs
 
 fn main() {
-    let input = fs::read_to_string("../input/d06.txt").unwrap()
+    // let input = fs::read_to_string("../input/d06.txt").unwrap()
+    let input = "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN\n"
     let orbit_map = parse_input(input)
 
     let result1 = solve_part1(orbit_map)
