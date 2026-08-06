@@ -1,0 +1,178 @@
+use std::fs
+use std::math
+
+struct Coord { x: i64, y: i64 }
+
+fn parse_asteroids(input: String) -> Vec<Coord> {
+    let field = input.trim().lines().map(|line| line.chars())
+    let rows = field.len()
+    let cols = field[0].len()
+    let mut asteroids: Vec<Coord> = #[]
+    for r in ..rows {
+        for c in ..cols {
+            if field[r][c] == '#' {
+                asteroids.push(Coord { x: c, y: r })
+            }
+        }
+    }
+    asteroids
+}
+
+fn gcd(a: i64, b: i64) -> i64 {
+    let (mut x, mut y) = (a.abs(), b.abs())
+    while y != 0 {
+        let t = y
+        y = x % y
+        x = t
+    }
+    x
+}
+
+fn count_visible(from: i64, asteroids: &[Coord]) -> i64 {
+    let mut directions: Set<(i64, i64)> = #{}
+    for i in ..asteroids.len() {
+        if i == from {
+            continue
+        }
+        let dx = asteroids[i].x - asteroids[from].x
+        let dy = asteroids[i].y - asteroids[from].y
+        let g = gcd(dx, dy)
+        directions.insert((dx / g, dy / g))
+    }
+    directions.len()
+}
+
+fn best_location(asteroids: &[Coord]) -> (i64, i64, i64) {
+    let mut best = (0, 0, 0)
+    for i in ..asteroids.len() {
+        let count = count_visible(i, asteroids)
+        if count > best.2 {
+            best = (asteroids[i].x, asteroids[i].y, count)
+        }
+    }
+    best
+}
+
+fn angle_key(dx: i64, dy: i64) -> f64 {
+    let a = math::atan2(dx as f64, -dy as f64)
+    if a < 0.0 { a + 2.0 * math::PI } else { a }
+}
+
+fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> {
+    let mut records: Vec<(f64, i64, i64, i64, i64, i64)> = #[]
+    for a in asteroids {
+        let dx = a.x - sx
+        let dy = a.y - sy
+        if dx == 0 && dy == 0 {
+            continue
+        }
+        let g = gcd(dx, dy)
+        let nx = dx / g
+        let ny = dy / g
+        records.push((angle_key(nx, ny), nx, ny, g, a.x, a.y))
+    }
+    records.sort()
+
+    let mut groups: Vec<Vec<(i64, i64)>> = #[]
+    let mut cur_nx = 0
+    let mut cur_ny = 0
+    let mut cur: Vec<(i64, i64)> = #[]
+    for rec in records {
+        let (_, nx, ny, _, x, y) = rec
+        if cur.len() > 0 && (nx != cur_nx || ny != cur_ny) {
+            groups.push(cur)
+            cur = #[]
+        }
+        cur_nx = nx
+        cur_ny = ny
+        cur.push((x, y))
+    }
+    if cur.len() > 0 {
+        groups.push(cur)
+    }
+
+    let mut order: Vec<(i64, i64)> = #[]
+    let mut rotation = 0
+    loop {
+        let mut any = false
+        for g in groups {
+            if rotation < g.len() {
+                order.push(g[rotation])
+                any = true
+            }
+        }
+        if !any {
+            break
+        }
+        rotation += 1
+    }
+    order
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d10.txt").unwrap()
+    let asteroids = parse_asteroids(input)
+    let (x, y, count) = best_location(&asteroids)
+    println!("Part 1: best at ({},{}) detects {} asteroids", x, y, count)
+
+    let order = vaporization_order(&asteroids, x, y)
+    let (ox, oy) = order[199]
+    println!("Part 2: 200th vaporized at ({},{}), answer {}", ox, oy, ox * 100 + oy)
+}
+
+#[cfg(test)]
+mod d10_tests {
+    fn solve(map: String) -> i64 {
+        let asteroids = super::parse_asteroids(map)
+        super::best_location(&asteroids).2
+    }
+
+    #[test]
+    fn small_example() {
+        let map = ".#..#\n.....\n#####\n....#\n...##\n"
+        assert_eq(solve(map.to_string()), 8, "small example detects 8")
+    }
+
+    #[test]
+    fn example_33() {
+        let map = "......#.#.\n#..#.#....\n..#######.\n.#.#.###..\n.#..#.....\n..#....#.#\n#..#....#.\n.##.#..###\n##...#..#.\n.#....####\n"
+        assert_eq(solve(map.to_string()), 33, "best is 5,8 with 33")
+    }
+
+    #[test]
+    fn example_35() {
+        let map = "#.#...#.#.\n.###....#.\n.#....#...\n##.#.#.#.#\n....#.#.#.\n.##..###.#\n..#...##..\n..##....##\n......#...\n.####.###.\n"
+        assert_eq(solve(map.to_string()), 35, "best is 1,2 with 35")
+    }
+
+    #[test]
+    fn example_41() {
+        let map = ".#..#..###\n####.###.#\n....###.#.\n..###.##.#\n##.##.#.#.\n....###..#\n..#.#..#.#\n#..#.#.###\n.##...##.#\n.....#.#..\n"
+        assert_eq(solve(map.to_string()), 41, "best is 6,3 with 41")
+    }
+
+    #[test]
+    fn example_210() {
+        let map = ".#..##.###...#######\n##.############..##.\n.#.######.########.#\n.###.#######.####.#.\n#####.##.#.##.###.##\n..#####..#.#########\n####################\n#.####....###.#.#.##\n##.#################\n#####.##.###..####..\n..######..##.#######\n####.##.####...##..#\n.#####..#.######.###\n##...#.##########...\n#.##########.#######\n.####.#.###.###.#.##\n....##.##.###..#####\n.#.#.###########.###\n#.#.#.#####.####.###\n###.##.####.##.#..##\n"
+        assert_eq(solve(map.to_string()), 210, "best is 11,13 with 210")
+    }
+
+    #[test]
+    fn vaporization_positions() {
+        let map = ".#..##.###...#######\n##.############..##.\n.#.######.########.#\n.###.#######.####.#.\n#####.##.#.##.###.##\n..#####..#.#########\n####################\n#.####....###.#.#.##\n##.#################\n#####.##.###..####..\n..######..##.#######\n####.##.####...##..#\n.#####..#.######.###\n##...#.##########...\n#.##########.#######\n.####.#.###.###.#.##\n....##.##.###..#####\n.#.#.###########.###\n#.#.#.#####.####.###\n###.##.####.##.#..##\n"
+        let asteroids = super::parse_asteroids(map.to_string())
+        let order = super::vaporization_order(&asteroids, 11, 13)
+        assert_eq(order.len(), 299, "299 asteroids vaporized")
+        assert_eq(order[0], (11, 12), "1st at 11,12")
+        assert_eq(order[1], (12, 1), "2nd at 12,1")
+        assert_eq(order[2], (12, 2), "3rd at 12,2")
+        assert_eq(order[9], (12, 8), "10th at 12,8")
+        assert_eq(order[19], (16, 0), "20th at 16,0")
+        assert_eq(order[49], (16, 9), "50th at 16,9")
+        assert_eq(order[99], (10, 16), "100th at 10,16")
+        assert_eq(order[198], (9, 6), "199th at 9,6")
+        assert_eq(order[199], (8, 2), "200th at 8,2")
+        assert_eq(order[200], (10, 9), "201st at 10,9")
+        assert_eq(order[298], (11, 1), "299th at 11,1")
+    }
+}
