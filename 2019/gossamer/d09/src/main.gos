@@ -1,0 +1,20 @@
+use std::fs
+
+fn parse_input(path: String) -> Vec<i64> {
+    fs::read_to_string(path).unwrap()
+        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
+}
+
+fn main() {
+    let program = parse_input("../input/d09.txt")
+
+    // Part 1 - BOOST keycode
+    let mut computer1 = intcode::IntcodeComputer::new(program)
+    let result1 = computer1.run(&[1])
+    println!("Part 1 - BOOST keycode: {}", result1)
+
+    // Part 2 - BOOST coordinates
+    let mut computer2 = intcode::IntcodeComputer::new(program)
+    let result2 = computer2.run(&[2])
+    println!("Part 2 - BOOST coordinates: {}", result2)
+}

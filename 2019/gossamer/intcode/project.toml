@@ -1,0 +1,5 @@
+[project]
+id = "example.com/intcode"
+version = "0.1.0"
+
+[dependencies]

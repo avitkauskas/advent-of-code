@@ -1,20 +1,16 @@
-use std::fs
-
-fn parse_input(path: String) -> Vec<i64> {
-    fs::read_to_string(path).unwrap()
-        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
-}
-
-struct IntcodeComputer {
+pub struct IntcodeComputer {
     memory: Map<i64, i64>
     position: i64
     relative_base: i64
     last_output: i64
     outputs: Vec<i64>
+    inputs: Vec<i64>
+    input_position: i64
+    halted: bool
 }
 
 impl IntcodeComputer {
-    fn new(program: Vec<i64>) -> Self {
+    pub fn new(program: Vec<i64>) -> Self {
         let mut memory = Map::new()
         for (addr, value) in program.enumerate() {
             memory.insert(addr, value)
@@ -25,6 +21,9 @@ impl IntcodeComputer {
             relative_base: 0
             last_output: 0
             outputs: #[]
+            inputs: #[]
+            input_position: 0
+            halted: false
         }
     }
 
@@ -38,6 +37,16 @@ impl IntcodeComputer {
         modes
     }
 
+    fn get_param(self, offset: i64, modes: [i64; 3]) -> i64 {
+        let value = self.read_memory(self.position + offset)
+        match modes[offset - 1] {
+            0 => self.read_memory(value)
+            1 => value
+            2 => self.read_memory(value + self.relative_base)
+            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
+        }
+    }
+
     fn read_memory(self, addr: i64) -> i64 {
         if addr < 0 {
             panic!("Invalid memory access at negative address {}", addr)
@@ -45,25 +54,10 @@ impl IntcodeComputer {
         self.memory.get_or(addr, 0)
     }
 
-    fn get_param(self, offset: i64, modes: [i64; 3]) -> i64 {
-        let value = self.read_memory(self.position + offset)
-        match modes[offset - 1] {
-            // position mode
-            0 => self.read_memory(value)
-            // immediate mode
-            1 => value
-            // relative mode
-            2 => self.read_memory(value + self.relative_base)
-            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
-        }
-    }
-
     fn set_memory(&mut self, offset: i64, modes: [i64; 3], value: i64) {
         let param = self.read_memory(self.position + offset)
         let addr = match modes[offset - 1] {
-            // position mode
             0 => param
-            // relative mode
             2 => param + self.relative_base
             1 => panic!("Cannot write in immediate mode")
             _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
@@ -74,14 +68,18 @@ impl IntcodeComputer {
         self.memory.insert(addr, value)
     }
 
-    fn run(&mut self, input: i64) -> i64 {
+    pub fn run(&mut self, new_inputs: &[i64]) -> i64 {
+        self.inputs.extend(new_inputs)
         loop {
             let instruction = self.read_memory(self.position)
             let opcode = instruction % 100
             let modes = self.get_parameter_modes(instruction)
 
             match opcode {
-                99 => break
+                99 => {
+                    self.halted = true
+                    break
+                }
                 1 => {
                     let sum = self.get_param(1, modes) + self.get_param(2, modes)
                     self.set_memory(3, modes, sum)
@@ -93,7 +91,11 @@ impl IntcodeComputer {
                     self.position += 4
                 }
                 3 => {
-                    self.set_memory(1, modes, input)
+                    if self.input_position >= self.inputs.len() {
+                        break
+                    }
+                    self.set_memory(1, modes, self.inputs[self.input_position])
+                    self.input_position += 1
                     self.position += 2
                 }
                 4 => {
@@ -117,20 +119,12 @@ impl IntcodeComputer {
                     }
                 }
                 7 => {
-                    let value = if self.get_param(1, modes) < self.get_param(2, modes) {
-                        1
-                    } else {
-                        0
-                    }
+                    let value = if self.get_param(1, modes) < self.get_param(2, modes) { 1 } else { 0 }
                     self.set_memory(3, modes, value)
                     self.position += 4
                 }
                 8 => {
-                    let value = if self.get_param(1, modes) == self.get_param(2, modes) {
-                        1
-                    } else {
-                        0
-                    }
+                    let value = if self.get_param(1, modes) == self.get_param(2, modes) { 1 } else { 0 }
                     self.set_memory(3, modes, value)
                     self.position += 4
                 }
@@ -143,27 +137,17 @@ impl IntcodeComputer {
         }
         self.last_output
     }
-}
 
-fn main() {
-    let program = parse_input("../input/d09.txt")
-
-    // Part 1 - BOOST keycode
-    let mut computer1 = IntcodeComputer::new(program)
-    let result1 = computer1.run(1)
-    println!("Part 1 - BOOST keycode: {}", result1)
-
-    // Part 2 - BOOST coordinates
-    let mut computer2 = IntcodeComputer::new(program)
-    let result2 = computer2.run(2)
-    println!("Part 2 - BOOST coordinates: {}", result2)
+    pub fn is_halted(self) -> bool {
+        self.halted
+    }
 }
 
 #[cfg(test)]
-mod d09_tests {
+mod intcode_tests {
     fn run_program(program: Vec<i64>, input: i64) -> Vec<i64> {
         let mut computer = super::IntcodeComputer::new(program)
-        computer.run(input)
+        computer.run(&[input])
         computer.outputs
     }
 
