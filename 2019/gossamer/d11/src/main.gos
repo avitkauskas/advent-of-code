@@ -75,7 +75,7 @@ fn render(coords: Vec<(i64, i64)>, panels: Map<(i64, i64), i64>) {
             if panels.get_or((x, y), 0) == 1 {
                 line += "#"
             } else {
-                line += "."
+                line += " "
             }
             x += 1
         }
