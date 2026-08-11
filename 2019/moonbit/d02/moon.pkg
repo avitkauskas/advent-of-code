@@ -1,0 +1,5 @@
+pkgtype(kind: "executable")
+
+import {
+  "alvis/aoc2019/common",
+}

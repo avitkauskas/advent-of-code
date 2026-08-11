@@ -1,0 +1,7 @@
+pkgtype(kind: "executable")
+
+import {
+  "alvis/aoc2019/common",
+  "moonbitlang/core/hashmap",
+  "moonbitlang/core/hashset",
+}

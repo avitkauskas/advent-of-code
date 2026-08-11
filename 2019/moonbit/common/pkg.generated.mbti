@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "alvis/aoc2019/common"
+
+// Values
+pub fn lines(String) -> Array[String]
+
+pub fn parse_int(StringView) -> Int
+
+pub fn parse_ints(String, String) -> Array[Int]
+
+pub fn read_input(String) -> String raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

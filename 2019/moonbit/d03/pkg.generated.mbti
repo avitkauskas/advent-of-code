@@ -1,0 +1,13 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "alvis/aoc2019/d03"
+
+// Values
+
+// Errors
+
+// Types and methods
+type Point derive(Eq, Hash)
+
+// Type aliases
+
+// Traits

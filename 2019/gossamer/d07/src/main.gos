@@ -1,9 +1,9 @@
 use std::fs
+use "example.com/intcode"
 
 fn run_amplifier_sequence(program: Vec<i64>, phase_settings: Vec<i64>) -> i64 {
     let mut signal = 0
 
-    // Run each amplifier in sequence
     for phase in phase_settings {
         let mut computer = intcode::IntcodeComputer::new(program)
         signal = computer.run(&[phase, signal])
@@ -84,8 +84,7 @@ fn solve_part2(program: Vec<i64>) -> i64 {
 }
 
 fn main() {
-    // let input = fs::read_to_string("../input/d07.txt").unwrap()
-    let input = "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5"
+    let input = fs::read_to_string("../input/d07.txt").unwrap()
 
     let program: Vec<i64> = input
         .trim()
