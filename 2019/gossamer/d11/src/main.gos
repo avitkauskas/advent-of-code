@@ -1,23 +1,18 @@
-use std::fs
+use std::{fs, iter, strings}
 
 fn parse_input(path: String) -> Vec<i64> {
     fs::read_to_string(path).unwrap()
         .trim().split(',').map(|s| s.parse::<i64>().unwrap())
 }
 
-// Run the painting robot. `start_color` is the color of the starting panel
-// (0 for part 1, 1 for part 2). Returns the number of panels painted at
-// least once, the painted positions, and the final panel colors.
-fn paint(program: Vec<i64>, start_color: i64) -> (i64, Vec<(i64, i64)>, Map<(i64, i64), i64>) {
+fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {
     let mut computer = intcode::IntcodeComputer::new(program)
     let mut pos = (0, 0)
     let mut dir = 0
     let mut panels: Map<(i64, i64), i64> = {}
-    let mut coords: Vec<(i64, i64)> = #[]
     let mut consumed = 0
 
     panels.insert(pos, start_color)
-    coords.push(pos)
 
     loop {
         let color = panels.get_or(pos, 0)
@@ -32,12 +27,11 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Vec<(i64, i64)>, Map<(i64
         consumed += 2
 
         panels.insert(pos, paint_color)
-        coords.push(pos)
 
-        if turn == 0 {
-            dir = (dir + 3) % 4
-        } else {
-            dir = (dir + 1) % 4
+        dir = match turn {
+            0 => (dir + 3) % 4
+            1 => (dir + 1) % 4
+            _ => unreachable!()
         }
 
         match dir {
@@ -53,32 +47,26 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Vec<(i64, i64)>, Map<(i64
         }
     }
 
-    (panels.len(), coords, panels)
+    (panels.len(), panels)
 }
 
-fn render(coords: Vec<(i64, i64)>, panels: Map<(i64, i64), i64>) {
+fn render(panels: Map<(i64, i64), i64>) {
     let mut min_x = 0
     let mut max_x = 0
     let mut min_y = 0
     let mut max_y = 0
-    for p in coords {
-        min_x = min_x.min(p.0)
-        max_x = max_x.max(p.0)
-        min_y = min_y.min(p.1)
-        max_y = max_y.max(p.1)
+    for (x, y) in panels.keys() {
+        min_x = min_x.min(x)
+        max_x = max_x.max(x)
+        min_y = min_y.min(y)
+        max_y = max_y.max(y)
     }
 
     for y in (min_y..=max_y).rev() {
-        let mut line = String::new()
-        let mut x = min_x
-        while x <= max_x {
-            if panels.get_or((x, y), 0) == 1 {
-                line += "#"
-            } else {
-                line += " "
-            }
-            x += 1
-        }
+        let line = (min_x..=max_x)
+            .map(|x| if panels.get_or((x, y), 0) == 1 { "#" } else { " " })
+            .collect()
+            .join("")
         println!("{}", line)
     }
 }
@@ -87,11 +75,11 @@ fn main() {
     let program = parse_input("../input/d11.txt")
 
     // Part 1 - starting on a black panel
-    let (count, _, _) = paint(program, 0)
+    let (count, _) = paint(program, 0)
     println!("Part 1 - Panels painted at least once: {}", count)
 
     // Part 2 - starting on a white panel
-    let (_, coords, panels) = paint(program, 1)
+    let (_, panels) = paint(program, 1)
     println!("Part 2 - Registration identifier:")
-    render(coords, panels)
+    render(panels)
 }
