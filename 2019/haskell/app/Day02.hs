@@ -35,15 +35,13 @@ withNounVerb noun verb (x0 : _ : _ : rest) = x0 : noun : verb : rest
 withNounVerb _ _ _ = error "input too short"
 
 findNounVerb :: [Int] -> (Int, Int)
-findNounVerb inputValues =
-  case
-    [ (noun, verb)
-      | noun <- [0 .. 99],
-        verb <- [0 .. 99],
-        runIntcode (withNounVerb noun verb inputValues) == targetOutput
-    ] of
-    (noun, verb) : _ -> (noun, verb)
-    [] -> error "no noun/verb found"
+findNounVerb inputValues = search 0 0
+  where
+    search noun verb
+      | runIntcode (withNounVerb noun verb inputValues) == targetOutput = (noun, verb)
+      | verb < 99 = search noun (verb + 1)
+      | noun < 99 = search (noun + 1) 0
+      | otherwise = error "no noun/verb found"
 
 main :: IO ()
 main = do
