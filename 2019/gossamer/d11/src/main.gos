@@ -23,12 +23,12 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Vec<(i64, i64)>, Map<(i64
         let color = panels.get_or(pos, 0)
         computer.run(&[color])
 
-        if computer.outputs.len() == consumed {
+        if computer.output_count() == consumed {
             break
         }
 
-        let paint_color = computer.outputs[consumed]
-        let turn = computer.outputs[consumed + 1]
+        let paint_color = computer.output(consumed)
+        let turn = computer.output(consumed + 1)
         consumed += 2
 
         panels.insert(pos, paint_color)

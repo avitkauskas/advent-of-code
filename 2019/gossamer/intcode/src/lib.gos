@@ -138,8 +138,16 @@ impl IntcodeComputer {
         self.last_output
     }
 
-    pub fn is_halted(self) -> bool {
+    pub fn is_halted(&self) -> bool {
         self.halted
+    }
+
+    pub fn output_count(&self) -> i64 {
+        self.outputs.len()
+    }
+
+    pub fn output(&self, index: i64) -> i64 {
+        self.outputs[index]
     }
 }
 
