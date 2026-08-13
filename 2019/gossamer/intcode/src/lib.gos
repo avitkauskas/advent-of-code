@@ -149,6 +149,10 @@ impl IntcodeComputer {
     pub fn output(&self, index: i64) -> i64 {
         self.outputs[index]
     }
+
+    pub fn all_outputs(&self) -> Vec<i64> {
+        self.outputs
+    }
 }
 
 #[cfg(test)]

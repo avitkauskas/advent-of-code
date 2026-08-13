@@ -1,0 +1,60 @@
+use std::fs
+use "example.com/intcode"
+
+fn parse_input(path: String) -> Vec<i64> {
+    fs::read_to_string(path).unwrap()
+        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
+}
+
+fn play(program: Vec<i64>) -> i64 {
+    let mut computer = intcode::IntcodeComputer::new(program)
+    let mut processed = 0
+    let (mut ball_x, mut paddle_x) = (0, 0)
+    let mut score = 0
+    let mut blocks: Map<(i64, i64), i64> = Map::new()
+    loop {
+        if computer.is_halted() {
+            break
+        }
+        let joystick = if ball_x < paddle_x { -1 } else if ball_x > paddle_x { 1 } else { 0 }
+        computer.run(&[joystick])
+        let outputs = computer.all_outputs()
+        while processed < outputs.len() {
+            let x = outputs[processed]
+            let y = outputs[processed + 1]
+            let tile = outputs[processed + 2]
+            processed += 3
+            if x == -1 && y == 0 {
+                score = tile
+            } else {
+                match tile {
+                    4 => ball_x = x
+                    3 => paddle_x = x
+                    2 => { let _ = blocks.insert((x, y), 1) }
+                    0 => { let _ = blocks.remove((x, y)) }
+                    _ => ()
+                }
+            }
+        }
+        if blocks.len() == 0 {
+            break
+        }
+    }
+    score
+}
+
+fn main() {
+    let mut program = parse_input("../input/d13.txt")
+
+    // Part 1 - Block titles
+    let mut computer1 = intcode::IntcodeComputer::new(program)
+    computer1.run(&[])
+    let outputs = computer1.all_outputs()
+    let part1 = outputs.skip(2).step_by(3).count_of(2)
+    println!("Part 1: Block tiles - {}", part1)
+
+    // Part 2 - Score (play the game)
+    program[0] = 2
+    let part2 = play(program)
+    println!("Part 2: Score - {}", part2)
+}
