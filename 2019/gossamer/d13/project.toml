@@ -3,4 +3,4 @@ id = "example.com/d13"
 version = "0.1.0"
 
 [dependencies]
-"example.com/intcode" = { path = "../intcode" }
+# "example.com/intcode" = { path = "../intcode" }
