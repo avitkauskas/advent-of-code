@@ -4,7 +4,7 @@ use std::math
 struct Coord { x: i64, y: i64 }
 
 fn parse_asteroids(input: String) -> Vec<Coord> {
-    let field = input.trim().lines().map(|line| line.chars())
+    let field = input.trim().lines().map(|line| line.chars().collect())
     let rows = field.len()
     let cols = field[0].len()
     let mut asteroids: Vec<Coord> = #[]
