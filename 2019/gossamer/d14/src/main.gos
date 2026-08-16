@@ -45,17 +45,36 @@ fn update_ingredients_needed(
     }
 }
 
-fn ore_for_one_fuel(reactions: Map<String, Reaction>) -> i64 {
+fn ore_for_one_fuel(needed: &mut Map<String, i64>, reactions: Map<String, Reaction>) {
     let fuel_reaction = reactions.get("FUEL").unwrap()
-    assert_eq(fuel_reaction.quantity, 1, "FUEL formula quantity it not 1")
+    // assert_eq(fuel_reaction.quantity, 1, "FUEL formula quantity it not 1")
 
-    let mut ingredients_needed = fuel_reaction.ingredients
-
-    while let Some(ingredient) = any_needed(ingredients_needed) {
-        update_ingredients_needed(&mut ingredients_needed, ingredient, reactions)
+    for (name, quantity) in fuel_reaction.ingredients {
+        needed.insert(name, needed.get_or(name, 0) + quantity)
     }
 
-    ingredients_needed.get("ORE").unwrap()
+    while let Some(ingredient) = any_needed(needed) {
+        update_ingredients_needed(needed, ingredient, reactions)
+    }
+}
+
+fn find_cycle(reactions: Map<String, Reaction>) -> (i64, i64) {
+    let mut fuel = 1
+    let mut needed: Map<String, i64> = {}
+    ore_for_one_fuel(&mut needed, reactions)
+    let mut initial_needed = *needed
+    initial_needed.remove("ORE")
+
+    loop {
+        ore_for_one_fuel(&mut needed, reactions)
+        fuel += 1
+        let mut new_needed = *needed
+        new_needed.remove("ORE")
+        if initial_needed == new_needed { break }
+        // println!("{fuel}: {needed}")
+    }
+
+    (fuel, needed.get("ORE").unwrap())
 }
 
 fn main() {
@@ -71,10 +90,25 @@ fn main() {
     165 ORE => 2 GPVTF
     3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT
     """
+    // let input = """
+    // 10 ORE => 10 A
+    // 1 ORE => 1 B
+    // 7 A, 1 B => 1 C
+    // 7 A, 1 C => 1 D
+    // 7 A, 1 D => 1 E
+    // 7 A, 1 E => 1 FUEL
+    // """
     let reactions = parse_input(input)
+    let mut needed: Map<String, i64> = {}
 
-    let part1 = ore_for_one_fuel(reactions)
+    ore_for_one_fuel(&mut needed, reactions)
+    let part1 = needed.get("ORE").unwrap()
     println!("Part 1 - ORE: {}", part1)
 
-    // println!("Part 2: Score: {}", part2)
+    let have_ore = 1_000_000_000_000
+    let (fuel, ore) = find_cycle(reactions)
+    let full_cycles = have_ore / ore
+    let additional = have_ore % ore / part1
+    let part2 = fuel * full_cycles + additional
+    println!("Part 2: FUEL: {}", part2)
 }
