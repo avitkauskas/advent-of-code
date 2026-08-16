@@ -1,0 +1,80 @@
+use std::fs
+
+struct Reaction {
+    quantity: i64
+    ingredients: Map<String, i64>
+}
+
+fn parse_input(input: String) -> Map<String, Reaction> {
+    Map::from(
+        input.lines().map(|line| {
+            let (part1, part2) = line.split(" => ")
+            let (ch_qnt, ch_name) = part2.split(" ")
+            let in_parts: Vec<String> = part1.split(", ")
+            let ingredients = Map::from(
+                in_parts.map(|p| {
+                    let (in_qnt, in_name) = p.split(" ")
+                    (in_name, in_qnt.to_i64().unwrap())
+                })
+            )
+            (ch_name, Reaction { quantity: ch_qnt.to_i64().unwrap(), ingredients: ingredients })
+        })
+    )
+}
+
+fn any_needed(needed: Map<String, i64>) -> Option<String> {
+    match needed.find(|(name, quantity)| name != "ORE" && quantity > 0) {
+        Some(found) => Some(found.0)
+        None => None
+    }
+}
+
+fn update_ingredients_needed(
+    needed: &mut Map<String, i64>
+    ingredient: String
+    reactions: Map<String, Reaction>
+) {
+    let reaction = reactions.get(ingredient).unwrap()
+    let quantity = needed.get(ingredient).unwrap()
+    let prod = quantity / reaction.quantity + if quantity % reaction.quantity != 0 { 1 } else { 0 }
+
+    needed.insert(ingredient, quantity - prod * reaction.quantity)
+    for (name, qnt) in reaction.ingredients {
+        let q = needed.get_or(name, 0)
+        needed.insert(name, q + prod * qnt)
+    }
+}
+
+fn ore_for_one_fuel(reactions: Map<String, Reaction>) -> i64 {
+    let fuel_reaction = reactions.get("FUEL").unwrap()
+    assert_eq(fuel_reaction.quantity, 1, "FUEL formula quantity it not 1")
+
+    let mut ingredients_needed = fuel_reaction.ingredients
+
+    while let Some(ingredient) = any_needed(ingredients_needed) {
+        update_ingredients_needed(&mut ingredients_needed, ingredient, reactions)
+    }
+
+    ingredients_needed.get("ORE").unwrap()
+}
+
+fn main() {
+    // let input = fs::read_to_string("../input/d14.txt").unwrap()
+    let input = """
+    157 ORE => 5 NZVS
+    165 ORE => 6 DCFZ
+    44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL
+    12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ
+    179 ORE => 7 PSHF
+    177 ORE => 5 HKGWZ
+    7 DCFZ, 7 PSHF => 2 XJWVT
+    165 ORE => 2 GPVTF
+    3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT
+    """
+    let reactions = parse_input(input)
+
+    let part1 = ore_for_one_fuel(reactions)
+    println!("Part 1 - ORE: {}", part1)
+
+    // println!("Part 2: Score: {}", part2)
+}

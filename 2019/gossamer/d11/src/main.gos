@@ -1,15 +1,13 @@
-// use std::fs
-// use "example.com/intcode"
+use std::fs
+use "example.com/intcode"
 
 fn parse_input(path: String) -> Vec<i64> {
-    // fs::read_to_string(path).unwrap()
-    //     .trim().split(',').map(|s| s.parse::<i64>().unwrap())
-    path.trim().split(',').map(|s| s.parse::<i64>().unwrap())
+    fs::read_to_string(path).unwrap()
+        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
 }
 
 fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {
-    // let mut computer = intcode::IntcodeComputer::new(program)
-    let mut computer = IntcodeComputer::new(program)
+    let mut computer = intcode::IntcodeComputer::new(program)
     let mut pos = (0, 0)
     let mut dir = 0
     let mut panels: Map<(i64, i64), i64> = {}
@@ -75,9 +73,7 @@ fn render(panels: Map<(i64, i64), i64>) {
 }
 
 fn main() {
-    // let program = parse_input("../input/d11.txt")
-    let input = "3,8,1005,8,311,1106,0,11,0,0,0,104,1,104,0,3,8,102,-1,8,10,101,1,10,10,4,10,1008,8,1,10,4,10,1001,8,0,29,1006,0,98,2,1005,8,10,1,1107,11,10,3,8,102,-1,8,10,1001,10,1,10,4,10,1008,8,0,10,4,10,101,0,8,62,1006,0,27,2,1002,12,10,3,8,1002,8,-1,10,1001,10,1,10,4,10,108,0,8,10,4,10,1002,8,1,90,1,1006,1,10,2,1,20,10,3,8,102,-1,8,10,1001,10,1,10,4,10,1008,8,1,10,4,10,102,1,8,121,1,1003,5,10,1,1003,12,10,3,8,102,-1,8,10,101,1,10,10,4,10,1008,8,1,10,4,10,1002,8,1,151,1006,0,17,3,8,102,-1,8,10,1001,10,1,10,4,10,108,0,8,10,4,10,1002,8,1,175,3,8,102,-1,8,10,1001,10,1,10,4,10,108,1,8,10,4,10,101,0,8,197,2,6,14,10,1006,0,92,1006,0,4,3,8,1002,8,-1,10,101,1,10,10,4,10,108,0,8,10,4,10,1001,8,0,229,1006,0,21,2,102,17,10,3,8,1002,8,-1,10,101,1,10,10,4,10,1008,8,1,10,4,10,1001,8,0,259,3,8,102,-1,8,10,1001,10,1,10,4,10,108,0,8,10,4,10,102,1,8,280,1006,0,58,1006,0,21,2,6,11,10,101,1,9,9,1007,9,948,10,1005,10,15,99,109,633,104,0,104,1,21101,937150919572,0,1,21102,328,1,0,1105,1,432,21101,0,387394675496,1,21102,1,339,0,1106,0,432,3,10,104,0,104,1,3,10,104,0,104,0,3,10,104,0,104,1,3,10,104,0,104,1,3,10,104,0,104,0,3,10,104,0,104,1,21102,46325083283,1,1,21102,1,386,0,1106,0,432,21101,0,179519401051,1,21102,397,1,0,1106,0,432,3,10,104,0,104,0,3,10,104,0,104,0,21102,1,868410348308,1,21102,1,420,0,1105,1,432,21102,718086501140,1,1,21102,1,431,0,1105,1,432,99,109,2,22101,0,-1,1,21101,40,0,2,21101,0,463,3,21101,453,0,0,1106,0,496,109,-2,2105,1,0,0,1,0,0,1,109,2,3,10,204,-1,1001,458,459,474,4,0,1001,458,1,458,108,4,458,10,1006,10,490,1101,0,0,458,109,-2,2105,1,0,0,109,4,2102,1,-1,495,1207,-3,0,10,1006,10,513,21102,0,1,-3,22102,1,-3,1,22102,1,-2,2,21102,1,1,3,21102,1,532,0,1105,1,537,109,-4,2105,1,0,109,5,1207,-3,1,10,1006,10,560,2207,-4,-2,10,1006,10,560,22101,0,-4,-4,1105,1,628,22102,1,-4,1,21201,-3,-1,2,21202,-2,2,3,21102,1,579,0,1105,1,537,22101,0,1,-4,21102,1,1,-1,2207,-4,-2,10,1006,10,598,21102,1,0,-1,22202,-2,-1,-2,2107,0,-3,10,1006,10,620,22102,1,-1,1,21102,1,620,0,105,1,495,21202,-2,-1,-2,22201,-4,-2,-4,109,-5,2106,0,0"
-    let program = parse_input(input)
+    let program = parse_input("../input/d11.txt")
 
     // Part 1 - starting on a black panel
     let (count, _) = paint(program, 0)
@@ -87,192 +83,4 @@ fn main() {
     let (_, panels) = paint(program, 1)
     println!("Part 2 - Registration identifier:")
     render(panels)
-}
-
-pub struct IntcodeComputer {
-    memory: Map<i64, i64>
-    position: i64
-    relative_base: i64
-    last_output: i64
-    outputs: Vec<i64>
-    inputs: Vec<i64>
-    input_position: i64
-    halted: bool
-}
-
-impl IntcodeComputer {
-    pub fn new(program: Vec<i64>) -> Self {
-        let mut memory = Map::new()
-        for (addr, value) in program.enumerate() {
-            memory.insert(addr, value)
-        }
-        IntcodeComputer {
-            memory: memory
-            position: 0
-            relative_base: 0
-            last_output: 0
-            outputs: #[]
-            inputs: #[]
-            input_position: 0
-            halted: false
-        }
-    }
-
-    fn get_parameter_modes(self, instruction: i64) -> [i64; 3] {
-        let mut modes = [0; 3]
-        let mut mode_bits = instruction / 100
-        for i in 0..3 {
-            modes[i] = mode_bits % 10
-            mode_bits /= 10
-        }
-        modes
-    }
-
-    fn get_param(self, offset: i64, modes: [i64; 3]) -> i64 {
-        let value = self.read_memory(self.position + offset)
-        match modes[offset - 1] {
-            0 => self.read_memory(value)
-            1 => value
-            2 => self.read_memory(value + self.relative_base)
-            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
-        }
-    }
-
-    fn read_memory(self, addr: i64) -> i64 {
-        if addr < 0 {
-            panic!("Invalid memory access at negative address {}", addr)
-        }
-        self.memory.get_or(addr, 0)
-    }
-
-    fn set_memory(&mut self, offset: i64, modes: [i64; 3], value: i64) {
-        let param = self.read_memory(self.position + offset)
-        let addr = match modes[offset - 1] {
-            0 => param
-            2 => param + self.relative_base
-            1 => panic!("Cannot write in immediate mode")
-            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
-        }
-        if addr < 0 {
-            panic!("Invalid memory access at negative address {}", addr)
-        }
-        self.memory.insert(addr, value)
-    }
-
-    pub fn run(&mut self, new_inputs: &[i64]) -> i64 {
-        self.inputs.extend(new_inputs)
-        loop {
-            let instruction = self.read_memory(self.position)
-            let opcode = instruction % 100
-            let modes = self.get_parameter_modes(instruction)
-
-            match opcode {
-                99 => {
-                    self.halted = true
-                    break
-                }
-                1 => {
-                    let sum = self.get_param(1, modes) + self.get_param(2, modes)
-                    self.set_memory(3, modes, sum)
-                    self.position += 4
-                }
-                2 => {
-                    let product = self.get_param(1, modes) * self.get_param(2, modes)
-                    self.set_memory(3, modes, product)
-                    self.position += 4
-                }
-                3 => {
-                    if self.input_position >= self.inputs.len() {
-                        break
-                    }
-                    self.set_memory(1, modes, self.inputs[self.input_position])
-                    self.input_position += 1
-                    self.position += 2
-                }
-                4 => {
-                    let value = self.get_param(1, modes)
-                    self.last_output = value
-                    self.outputs.push(value)
-                    self.position += 2
-                }
-                5 => {
-                    if self.get_param(1, modes) != 0 {
-                        self.position = self.get_param(2, modes)
-                    } else {
-                        self.position += 3
-                    }
-                }
-                6 => {
-                    if self.get_param(1, modes) == 0 {
-                        self.position = self.get_param(2, modes)
-                    } else {
-                        self.position += 3
-                    }
-                }
-                7 => {
-                    let value = if self.get_param(1, modes) < self.get_param(2, modes) { 1 } else { 0 }
-                    self.set_memory(3, modes, value)
-                    self.position += 4
-                }
-                8 => {
-                    let value = if self.get_param(1, modes) == self.get_param(2, modes) { 1 } else { 0 }
-                    self.set_memory(3, modes, value)
-                    self.position += 4
-                }
-                9 => {
-                    self.relative_base += self.get_param(1, modes)
-                    self.position += 2
-                }
-                _ => panic!("Unknown opcode: {}", opcode)
-            }
-        }
-        self.last_output
-    }
-
-    pub fn is_halted(&self) -> bool {
-        self.halted
-    }
-
-    pub fn output_count(&self) -> i64 {
-        self.outputs.len()
-    }
-
-    pub fn output(&self, index: i64) -> i64 {
-        self.outputs[index]
-    }
-
-    pub fn all_outputs(&self) -> Vec<i64> {
-        self.outputs
-    }
-}
-
-#[cfg(test)]
-mod intcode_tests {
-    fn run_program(program: Vec<i64>, input: i64) -> Vec<i64> {
-        let mut computer = super::IntcodeComputer::new(program)
-        computer.run(&[input])
-        computer.outputs
-    }
-
-    #[test]
-    fn produces_copy_of_itself() {
-        let program = #[109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
-        let outputs = run_program(program, 0)
-        assert(
-            outputs == #[109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
-            "self-copy program"
-        )
-    }
-
-    #[test]
-    fn outputs_sixteen_digit_number() {
-        let outputs = run_program(#[1_102, 34_915_192, 34_915_192, 7, 4, 7, 99, 0], 0)
-        assert(outputs == #[1_219_070_632_396_864], "16-digit output")
-    }
-
-    #[test]
-    fn outputs_large_number() {
-        let outputs = run_program(#[104, 1_125_899_906_842_624, 99], 0)
-        assert(outputs == #[1_125_899_906_842_624], "large number output")
-    }
 }
