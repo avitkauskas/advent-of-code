@@ -8,23 +8,23 @@ struct Reaction {
 fn parse_input(input: String) -> Map<String, Reaction> {
     Map::from(
         input.lines().map(|line| {
-            let (part1, part2) = line.split(" => ")
-            let (ch_qnt, ch_name) = part2.split(" ")
-            let in_parts: Vec<String> = part1.split(", ")
+            let (ingredients_str, output_str) = line.split(" => ")
+            let (out_qty, out_name) = output_str.split(" ")
+            let ingredient_parts: Vec<String> = ingredients_str.split(", ")
             let ingredients = Map::from(
-                in_parts.map(|p| {
-                    let (in_qnt, in_name) = p.split(" ")
-                    (in_name, in_qnt.to_i64().unwrap())
+                ingredient_parts.map(|ingredient| {
+                    let (ing_qty, ing_name) = ingredient.split(" ")
+                    (ing_name, ing_qty.to_i64().unwrap())
                 })
             )
-            (ch_name, Reaction { quantity: ch_qnt.to_i64().unwrap(), ingredients: ingredients })
+            (out_name, Reaction { quantity: out_qty.to_i64().unwrap(), ingredients: ingredients })
         })
     )
 }
 
 fn any_needed(needed: Map<String, i64>) -> Option<String> {
     match needed.find(|(name, quantity)| name != "ORE" && quantity > 0) {
-        Some(found) => Some(found.0)
+        Some(entry) => Some(entry.0)
         None => None
     }
 }
@@ -35,80 +35,49 @@ fn update_ingredients_needed(
     reactions: Map<String, Reaction>
 ) {
     let reaction = reactions.get(ingredient).unwrap()
-    let quantity = needed.get(ingredient).unwrap()
-    let prod = quantity / reaction.quantity + if quantity % reaction.quantity != 0 { 1 } else { 0 }
+    let needed_qty = needed.get(ingredient).unwrap()
+    let batches = needed_qty / reaction.quantity + if needed_qty % reaction.quantity != 0 { 1 } else { 0 }
 
-    needed.insert(ingredient, quantity - prod * reaction.quantity)
-    for (name, qnt) in reaction.ingredients {
-        let q = needed.get_or(name, 0)
-        needed.insert(name, q + prod * qnt)
+    needed.insert(ingredient, needed_qty - batches * reaction.quantity)
+    for (name, qty) in reaction.ingredients {
+        let existing = needed.get_or(name, 0)
+        needed.insert(name, existing + batches * qty)
     }
 }
 
-fn ore_for_one_fuel(needed: &mut Map<String, i64>, reactions: Map<String, Reaction>) {
-    let fuel_reaction = reactions.get("FUEL").unwrap()
-    // assert_eq(fuel_reaction.quantity, 1, "FUEL formula quantity it not 1")
-
-    for (name, quantity) in fuel_reaction.ingredients {
-        needed.insert(name, needed.get_or(name, 0) + quantity)
-    }
-
+fn ore_for_fuel(reactions: Map<String, Reaction>, fuel_qty: i64) -> i64 {
+    let mut needed: Map<String, i64> = { "FUEL": fuel_qty }
     while let Some(ingredient) = any_needed(needed) {
-        update_ingredients_needed(needed, ingredient, reactions)
+        update_ingredients_needed(&mut needed, ingredient, reactions)
     }
+    needed.get("ORE").unwrap()
 }
 
-fn find_cycle(reactions: Map<String, Reaction>) -> (i64, i64) {
-    let mut fuel = 1
-    let mut needed: Map<String, i64> = {}
-    ore_for_one_fuel(&mut needed, reactions)
-    let mut initial_needed = *needed
-    initial_needed.remove("ORE")
-
-    loop {
-        ore_for_one_fuel(&mut needed, reactions)
-        fuel += 1
-        let mut new_needed = *needed
-        new_needed.remove("ORE")
-        if initial_needed == new_needed { break }
-        // println!("{fuel}: {needed}")
+fn max_fuel_for_ore(reactions: Map<String, Reaction>, have_ore: i64) -> i64 {
+    let mut lo = 1
+    let mut hi = 1
+    while ore_for_fuel(reactions, hi) <= have_ore {
+        hi *= 2
     }
-
-    (fuel, needed.get("ORE").unwrap())
+    while lo + 1 < hi {
+        let mid = (lo + hi) / 2
+        if ore_for_fuel(reactions, mid) <= have_ore {
+            lo = mid
+        } else {
+            hi = mid
+        }
+    }
+    lo
 }
 
 fn main() {
-    // let input = fs::read_to_string("../input/d14.txt").unwrap()
-    let input = """
-    157 ORE => 5 NZVS
-    165 ORE => 6 DCFZ
-    44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL
-    12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ
-    179 ORE => 7 PSHF
-    177 ORE => 5 HKGWZ
-    7 DCFZ, 7 PSHF => 2 XJWVT
-    165 ORE => 2 GPVTF
-    3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT
-    """
-    // let input = """
-    // 10 ORE => 10 A
-    // 1 ORE => 1 B
-    // 7 A, 1 B => 1 C
-    // 7 A, 1 C => 1 D
-    // 7 A, 1 D => 1 E
-    // 7 A, 1 E => 1 FUEL
-    // """
+    let input = fs::read_to_string("../input/d14.txt").unwrap()
     let reactions = parse_input(input)
-    let mut needed: Map<String, i64> = {}
 
-    ore_for_one_fuel(&mut needed, reactions)
-    let part1 = needed.get("ORE").unwrap()
+    let part1 = ore_for_fuel(reactions, 1)
     println!("Part 1 - ORE: {}", part1)
 
     let have_ore = 1_000_000_000_000
-    let (fuel, ore) = find_cycle(reactions)
-    let full_cycles = have_ore / ore
-    let additional = have_ore % ore / part1
-    let part2 = fuel * full_cycles + additional
+    let part2 = max_fuel_for_ore(reactions, have_ore)
     println!("Part 2: FUEL: {}", part2)
 }
