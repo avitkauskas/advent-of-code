@@ -25,7 +25,7 @@ fn parse_input(input: String) -> Map<String, Reaction> {
 fn any_needed(needed: Map<String, i64>) -> Option<String> {
     needed
         .find(|(name, quantity)| name != "ORE" && quantity > 0)
-        .map(|entry| entry.0)
+        .map(|(name, _)| name)
 }
 
 fn update_ingredients_needed(
@@ -70,18 +70,7 @@ fn max_fuel_for_ore(reactions: Map<String, Reaction>, have_ore: i64) -> i64 {
 }
 
 fn main() {
-    // let input = fs::read_to_string("../input/d14.txt").unwrap()
-    let input = """
-    157 ORE => 5 NZVS
-    165 ORE => 6 DCFZ
-    44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL
-    12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ
-    179 ORE => 7 PSHF
-    177 ORE => 5 HKGWZ
-    7 DCFZ, 7 PSHF => 2 XJWVT
-    165 ORE => 2 GPVTF
-    3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT
-    """
+    let input = fs::read_to_string("../input/d14.txt").unwrap()
     let reactions = parse_input(input)
 
     let part1 = ore_for_fuel(reactions, 1)

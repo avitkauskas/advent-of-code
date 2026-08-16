@@ -1,9 +1,8 @@
 use std::fs
 use "example.com/intcode"
 
-fn parse_input(path: String) -> Vec<i64> {
-    fs::read_to_string(path).unwrap()
-        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
 }
 
 fn play(program: Vec<i64>) -> i64 {
@@ -44,7 +43,8 @@ fn play(program: Vec<i64>) -> i64 {
 }
 
 fn main() {
-    let mut program = parse_input("../input/d13.txt")
+    let input = fs::read_to_string("../input/d13.txt").unwrap()
+    let mut program = parse_input(input)
 
     // Part 1 - Block titles
     let mut computer = intcode::IntcodeComputer::new(program)
