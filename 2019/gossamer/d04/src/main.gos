@@ -12,7 +12,7 @@ fn main() {
 fn solve_part1(start: i64, end: i64) -> i64 {
     let mut count = 0
     for num in start..=end {
-        let digits = num.to_string().chars()
+        let digits = num.to_string().chars().collect()
         if never_decreases(digits) && has_adjacent_digits(digits) {
             count += 1
         }
@@ -23,7 +23,7 @@ fn solve_part1(start: i64, end: i64) -> i64 {
 fn solve_part2(start: i64, end: i64) -> i64 {
     let mut count = 0
     for num in start..=end {
-        let digits = num.to_string().chars()
+        let digits = num.to_string().chars().collect()
         if never_decreases(digits) && has_exact_double(digits) {
             count += 1
         }

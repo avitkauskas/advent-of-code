@@ -1,59 +1,80 @@
 use std::fs
-use std::iter
-
-const BASE_PATTERN: [i64; 4] = [0, 1, 0, -1]
 
 fn parse_input(input: String) -> Vec<i64> {
     input.trim().chars().map(|s| s.to_string().to_i64().unwrap()).collect()
 }
 
-fn element_pattern(element: i64, len: i64) -> Vec<i64> {
-    let extended_pattern = BASE_PATTERN
-        .map(|e| iter::repeat(e, element))
-        .flatten()
+fn phase_result(input: &mut Vec<i64>) {
+    let n = input.len()
 
-    let repeat_count = len / extended_pattern.len() + 1
-
-    iter::repeat(extended_pattern, repeat_count)
-        .flatten()
-        .skip(1)
-        .take(len)
-}
-
-fn phase_result(input: Vec<i64>, patterns: Vec<Vec<i64>>) -> Vec<i64> {
-    let mut result = #[]
-
-    for i in ..input.len() {
-        let element = input
-            .zip(patterns[i])
-            .map(|(a, b)| a * b)
-            .sum()
-
-        result.push(element.abs() % 10)
+    let mut prefix = #[0; n + 1]
+    for k in 0..n {
+        prefix[k + 1] = prefix[k] + input[k]
     }
 
-    result
+    // prefix captures every input digit before any overwrite, so the
+    // output can be written back into input[i - 1] in place.
+    for i in 1..=n {
+        // For output element i, coefficient of input[k] is
+        // BASE_PATTERN[(k + 1) / i mod 4], so the +1 runs are
+        // [4im + i - 1, 4im + 2i - 2] and the -1 runs are
+        // [4im + 3i - 1, 4im + 4i - 2]. Each run is a prefix-sum slice.
+        let mut total = 0
+        let mut base = 0
+        loop {
+            let one_lo = base + i - 1
+            if one_lo >= n {
+                break
+            }
+            let one_hi = min(base + 2 * i - 2, n - 1)
+            total += prefix[one_hi + 1] - prefix[one_lo]
+
+            let neg_lo = base + 3 * i - 1
+            if neg_lo < n {
+                let neg_hi = min(base + 4 * i - 2, n - 1)
+                total -= prefix[neg_hi + 1] - prefix[neg_lo]
+            }
+            base += 4 * i
+        }
+
+        input[i - 1] = total.abs() % 10
+    }
+}
+
+fn suffix_phase(input: &mut Vec<i64>) {
+    let mut running = 0
+    for i in (0..input.len()).rev() {
+        running += input[i]
+        input[i] = running.abs() % 10
+    }
 }
 
 fn main() {
     let input = fs::read_to_string("../input/d16.txt").unwrap()
-    // let input = "12345678"
-    // let input = "80871224585914546619083218645595"
-    let mut signal = parse_input(input)
-    let len = signal.len()
+    let digits = parse_input(input)
+    let n = digits.len()
 
-    let mut patterns = #[]
-    for i in 1..=len {
-        patterns.push(element_pattern(i, len))
+    let mut signal = digits
+    for _ in ..100 {
+        phase_result(&mut signal)
+    }
+    println!("Part 1: {}", signal.take(8).join(""))
+
+    let mut offset = 0
+    for k in 0..7 {
+        offset = offset * 10 + digits[k]
+    }
+
+    let total = n * 10_000
+    let tail_len = total - offset
+    let mut tail = Vec::with_capacity(tail_len)
+
+    for i in 0..tail_len {
+        tail.push(digits[(offset + i) % n])
     }
 
     for _ in ..100 {
-        signal = phase_result(signal, patterns)
+        suffix_phase(&mut tail)
     }
-
-    let part1 = signal.take(8).join("")
-    println!("Part 1: {}", part1)
-
-    let part2 = 0
-    println!("Part 2: {}", part2)
+    println!("Part 2: {}", tail.take(8).join(""))
 }
