@@ -123,10 +123,12 @@ fn main() {
 mod d12_tests {
     #[test]
     fn example_energy() {
-        let input = "<x=-1, y=0, z=2>
-<x=2, y=-10, z=-7>
-<x=4, y=-8, z=8>
-<x=3, y=5, z=-1>"
+        let input = """
+        <x=-1, y=0, z=2>
+        <x=2, y=-10, z=-7>
+        <x=4, y=-8, z=8>
+        <x=3, y=5, z=-1>
+        """
         let mut moons = super::parse_moons(input)
         super::simulate(10, &mut moons)
         assert_eq(super::total_energy(&moons), 179, "example energy after 10 steps")
@@ -134,10 +136,12 @@ mod d12_tests {
 
     #[test]
     fn example_state_returns() {
-        let input = "<x=-8, y=-10, z=0>
-<x=5, y=5, z=10>
-<x=2, y=-7, z=3>
-<x=9, y=-8, z=-3>"
+        let input = """
+        <x=-8, y=-10, z=0>
+        <x=5, y=5, z=10>
+        <x=2, y=-7, z=3>
+        <x=9, y=-8, z=-3>
+        """
         let moons = super::parse_moons(input)
         let px = [moons[0].pos.x, moons[1].pos.x, moons[2].pos.x, moons[3].pos.x]
         let py = [moons[0].pos.y, moons[1].pos.y, moons[2].pos.y, moons[3].pos.y]

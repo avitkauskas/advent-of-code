@@ -1,0 +1,59 @@
+use std::fs
+use std::iter
+
+const BASE_PATTERN: [i64; 4] = [0, 1, 0, -1]
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().chars().map(|s| s.to_string().to_i64().unwrap()).collect()
+}
+
+fn element_pattern(element: i64, len: i64) -> Vec<i64> {
+    let extended_pattern = BASE_PATTERN
+        .map(|e| iter::repeat(e, element))
+        .flatten()
+
+    let repeat_count = len / extended_pattern.len() + 1
+
+    iter::repeat(extended_pattern, repeat_count)
+        .flatten()
+        .skip(1)
+        .take(len)
+}
+
+fn phase_result(input: Vec<i64>, patterns: Vec<Vec<i64>>) -> Vec<i64> {
+    let mut result = #[]
+
+    for i in ..input.len() {
+        let element = input
+            .zip(patterns[i])
+            .map(|(a, b)| a * b)
+            .sum()
+
+        result.push(element.abs() % 10)
+    }
+
+    result
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d16.txt").unwrap()
+    // let input = "12345678"
+    // let input = "80871224585914546619083218645595"
+    let mut signal = parse_input(input)
+    let len = signal.len()
+
+    let mut patterns = #[]
+    for i in 1..=len {
+        patterns.push(element_pattern(i, len))
+    }
+
+    for _ in ..100 {
+        signal = phase_result(signal, patterns)
+    }
+
+    let part1 = signal.take(8).join("")
+    println!("Part 1: {}", part1)
+
+    let part2 = 0
+    println!("Part 2: {}", part2)
+}
