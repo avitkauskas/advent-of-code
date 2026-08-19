@@ -281,34 +281,3 @@ impl IntcodeComputer {
         self.outputs
     }
 }
-
-#[cfg(test)]
-mod intcode_tests {
-    fn run_program(program: Vec<i64>, input: i64) -> Vec<i64> {
-        let mut computer = super::IntcodeComputer::new(program)
-        computer.run(&[input])
-        computer.outputs
-    }
-
-    #[test]
-    fn produces_copy_of_itself() {
-        let program = #[109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
-        let outputs = run_program(program, 0)
-        assert(
-            outputs == #[109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
-            "self-copy program"
-        )
-    }
-
-    #[test]
-    fn outputs_sixteen_digit_number() {
-        let outputs = run_program(#[1_102, 34_915_192, 34_915_192, 7, 4, 7, 99, 0], 0)
-        assert(outputs == #[1_219_070_632_396_864], "16-digit output")
-    }
-
-    #[test]
-    fn outputs_large_number() {
-        let outputs = run_program(#[104, 1_125_899_906_842_624, 99], 0)
-        assert(outputs == #[1_125_899_906_842_624], "large number output")
-    }
-}

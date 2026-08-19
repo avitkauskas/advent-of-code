@@ -1,0 +1,19 @@
+use std::fs
+use "example.com/intcode"
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d17.txt").unwrap()
+    let program = parse_input(input)
+    let program = parse_input(input)
+    let mut computer = intcode::IntcodeComputer::new(program)
+
+    let part1 = 0
+    println!("Part 1: {}", part1)
+
+    let part2 = 0
+    println!("Part 2: {}", part2)
+}
