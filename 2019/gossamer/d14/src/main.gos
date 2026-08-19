@@ -35,7 +35,8 @@ fn update_ingredients_needed(
 ) {
     let reaction = reactions.get(ingredient).unwrap()
     let needed_qty = needed.get(ingredient).unwrap()
-    let batches = needed_qty / reaction.quantity + if needed_qty % reaction.quantity != 0 { 1 } else { 0 }
+    let batches = needed_qty / reaction.quantity +
+        if needed_qty % reaction.quantity != 0 { 1 } else { 0 }
 
     needed.insert(ingredient, needed_qty - batches * reaction.quantity)
     for (name, qty) in reaction.ingredients {

@@ -73,15 +73,15 @@ fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> 
     }
     records.sort()
 
-    let mut groups: Vec<Vec<(i64, i64)>> = #[]
+    let mut groups: Vec<Queue<(i64, i64)>> = #[]
     let mut cur_nx = 0
     let mut cur_ny = 0
-    let mut cur: Vec<(i64, i64)> = #[]
+    let mut cur: Queue<(i64, i64)> = Queue::new()
     for rec in records {
         let (_, nx, ny, _, x, y) = rec
         if cur.len() > 0 && (nx != cur_nx || ny != cur_ny) {
             groups.push(cur)
-            cur = #[]
+            cur = Queue::new()
         }
         cur_nx = nx
         cur_ny = ny
@@ -92,19 +92,17 @@ fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> 
     }
 
     let mut order: Vec<(i64, i64)> = #[]
-    let mut rotation = 0
     loop {
         let mut any = false
-        for g in groups {
-            if rotation < g.len() {
-                order.push(g[rotation])
+        for mut g in groups {
+            if let Some(c) = g.pop() {
+                order.push(c)
                 any = true
             }
         }
         if !any {
             break
         }
-        rotation += 1
     }
     order
 }
@@ -112,6 +110,7 @@ fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> 
 fn main() {
     let input = fs::read_to_string("../input/d10.txt").unwrap()
     let asteroids = parse_asteroids(input)
+
     let (x, y, count) = best_location(&asteroids)
     println!("Part 1: best at ({},{}) detects {} asteroids", x, y, count)
 

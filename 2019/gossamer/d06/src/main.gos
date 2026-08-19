@@ -55,7 +55,9 @@ fn solve_part2(orbit_map: Map<String, String>) -> u64 {
         .unwrap()
 
     // Calculate distances to the first common ancestor
-    let get_distance = |path: Vec<String>| path.position(|node| node == first_common).unwrap() as u64
+    let get_distance = |path: Vec<String>| {
+        path.position(|node| node == first_common).unwrap() as u64
+    }
 
     let you_distance = get_distance(you_path)
     let san_distance = get_distance(san_path)

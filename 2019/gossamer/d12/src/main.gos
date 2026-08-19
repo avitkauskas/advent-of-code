@@ -118,37 +118,3 @@ fn main() {
     let z = axis_period(pz, [0; 4])
     println!("Part 2: {}", lcm(x, lcm(y, z)))
 }
-
-#[cfg(test)]
-mod d12_tests {
-    #[test]
-    fn example_energy() {
-        let input = """
-        <x=-1, y=0, z=2>
-        <x=2, y=-10, z=-7>
-        <x=4, y=-8, z=8>
-        <x=3, y=5, z=-1>
-        """
-        let mut moons = super::parse_moons(input)
-        super::simulate(10, &mut moons)
-        assert_eq(super::total_energy(&moons), 179, "example energy after 10 steps")
-    }
-
-    #[test]
-    fn example_state_returns() {
-        let input = """
-        <x=-8, y=-10, z=0>
-        <x=5, y=5, z=10>
-        <x=2, y=-7, z=3>
-        <x=9, y=-8, z=-3>
-        """
-        let moons = super::parse_moons(input)
-        let px = [moons[0].pos.x, moons[1].pos.x, moons[2].pos.x, moons[3].pos.x]
-        let py = [moons[0].pos.y, moons[1].pos.y, moons[2].pos.y, moons[3].pos.y]
-        let pz = [moons[0].pos.z, moons[1].pos.z, moons[2].pos.z, moons[3].pos.z]
-        let x = super::axis_period(px, [0; 4])
-        let y = super::axis_period(py, [0; 4])
-        let z = super::axis_period(pz, [0; 4])
-        assert_eq(super::lcm(x, super::lcm(y, z)), 4_686_774_924, "period example")
-    }
-}

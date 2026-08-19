@@ -54,7 +54,7 @@ impl IntcodeComputer {
         self.memory.get_or(addr, 0)
     }
 
-    fn set_memory(&mut self, offset: i64, modes: [i64; 3], value: i64) {
+    fn set_memory(&mut self, offset: i64, modes: [i64; 3], value: i64) -> () {
         let param = self.read_memory(self.position + offset)
         let addr = match modes[offset - 1] {
             0 => param
