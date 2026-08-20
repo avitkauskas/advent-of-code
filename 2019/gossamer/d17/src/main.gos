@@ -1,5 +1,4 @@
 use std::fs
-
 use "example.com/intcode"
 
 fn parse_input(input: String) -> Vec<i64> {
