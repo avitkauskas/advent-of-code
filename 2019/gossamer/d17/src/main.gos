@@ -5,13 +5,58 @@ fn parse_input(input: String) -> Vec<i64> {
     input.trim().split(',').map(|s| s.to_i64().unwrap())
 }
 
+fn run_program(program: Vec<i64>) -> Vec<i64> {
+    let mut computer = intcode::IntcodeComputer::new(program)
+    computer.run(&[])
+    computer.all_outputs()
+}
+
+fn build_field(output: Vec<i64>) -> Vec<Vec<char>> {
+    output
+        .map(|n| n as char).join("").trim().lines()
+        .map(|line| line.chars().collect())
+}
+
+fn is_scaffold(ch: char) -> bool {
+    ['#', '<', '>', '^', 'v'].contains(ch)
+}
+
+fn is_intersection(field: Vec<Vec<char>>, r: i64, c: i64) -> bool {
+    is_scaffold(field[r][c]) &&
+        [(r, c - 1), (r - 1, c), (r, c + 1), (r + 1, c)].all(|(rr, cc)|
+            is_scaffold(field[rr][cc]))
+}
+
+fn find_intersections(field: Vec<Vec<char>>) -> Vec<(i64, i64)> {
+    let rows = field.len()
+    let cols = field[0].len()
+
+    let mut intersections: Vec<(i64, i64)> = #[]
+    for r in 1..rows - 1 {
+        for c in 1..cols - 1 {
+            if is_intersection(field, r, c) {
+                intersections.push((r, c))
+            }
+        }
+    }
+    intersections
+}
+
+fn alignment_sum(field: Vec<Vec<char>>) -> i64 {
+    find_intersections(field).map(|(r, c)| r * c).sum()
+}
+
 fn main() {
     let input = fs::read_to_string("../input/d17.txt").unwrap()
     let program = parse_input(input)
-    let program = parse_input(input)
-    let mut computer = intcode::IntcodeComputer::new(program)
+    let output = run_program(program)
+    let field = build_field(output)
 
-    let part1 = 0
+    // for line in field {
+    //     println(line.join(""))
+    // }
+
+    let part1 = alignment_sum(field)
     println!("Part 1: {}", part1)
 
     let part2 = 0
