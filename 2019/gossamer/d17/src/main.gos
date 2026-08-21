@@ -1,13 +1,15 @@
 use std::fs
 use "example.com/intcode"
 
+const names: [String; 3] = ["A", "B", "C"]
+
 fn parse_input(input: String) -> Vec<i64> {
     input.trim().split(',').map(|s| s.to_i64().unwrap())
 }
 
-fn run_program(program: Vec<i64>) -> Vec<i64> {
+fn run_program(program: Vec<i64>, inputs: &[i64]) -> Vec<i64> {
     let mut computer = intcode::IntcodeComputer::new(program)
-    computer.run(&[])
+    computer.run(inputs)
     computer.all_outputs()
 }
 
@@ -46,19 +48,159 @@ fn alignment_sum(field: Vec<Vec<char>>) -> i64 {
     find_intersections(field).map(|(r, c)| r * c).sum()
 }
 
+fn is_scaffold_cell(field: Vec<Vec<char>>, r: i64, c: i64) -> bool {
+    if r < 0 || c < 0 || r >= field.len() || c >= field[0].len() { false }
+    else { is_scaffold(field[r][c]) }
+}
+
+fn find_robot(field: Vec<Vec<char>>) -> (i64, i64, i64, i64) {
+    for r in 0..field.len() {
+        for c in 0..field[0].len() {
+            let dir = match field[r][c] {
+                '^' => (-1, 0)
+                'v' => (1, 0)
+                '<' => (0, -1)
+                '>' => (0, 1)
+                _ => (0, 0)
+            }
+            if dir != (0, 0) {
+                return (r, c, dir.0, dir.1)
+            }
+        }
+    }
+    panic!("no robot found")
+}
+
+fn trace_path(field: Vec<Vec<char>>, mut r: i64, mut c: i64, mut dr: i64, mut dc: i64) -> Vec<String> {
+    let mut result: Vec<String> = #[]
+    let mut distance = 0
+
+    loop {
+        if is_scaffold_cell(field, r + dr, c + dc) {
+            r += dr
+            c += dc
+            distance += 1
+        } else {
+            if distance > 0 {
+                result.push(distance.to_string())
+                distance = 0
+            }
+            let left = (-dc, dr)
+            let right = (dc, -dr)
+            if is_scaffold_cell(field, r + left.0, c + left.1) {
+                result.push("L")
+                dr = left.0
+                dc = left.1
+            } else if is_scaffold_cell(field, r + right.0, c + right.1) {
+                result.push("R")
+                dr = right.0
+                dc = right.1
+            } else {
+                break
+            }
+            r += dr
+            c += dc
+            distance = 1
+        }
+    }
+    result
+}
+
+fn slice_matches(tokens: Vec<String>, pos: i64, pat: Vec<String>) -> bool {
+    if pos + pat.len() > tokens.len() {
+        return false
+    }
+    for i in 0..pat.len() {
+        if tokens[pos + i] != pat[i] {
+            return false
+        }
+    }
+    true
+}
+
+fn search(
+    tokens: Vec<String>
+    pos: i64
+    defs: [Option<Vec<String>>; 3]
+    main: Vec<String>
+) -> Option<([Option<Vec<String>>; 3], Vec<String>)> {
+    if pos >= tokens.len() {
+        if main.join(",").len() <= 20 {
+            return Some((defs, main))
+        }
+        return None
+    }
+
+    for idx in 0..3 {
+        if let Some(pat) = defs[idx] {
+            if slice_matches(tokens, pos, pat) {
+                let mut main2 = main
+                main2.push(names[idx])
+                if let Some(result) = search(tokens, pos + pat.len(), defs, main2) {
+                    return Some(result)
+                }
+            }
+        }
+    }
+
+    for idx in 0..3 {
+        if defs[idx].is_none() {
+            for k in 1..tokens.len() - pos + 1 {
+                let cand = tokens[pos..pos + k]
+                if cand.join(",").len() > 20 {
+                    break
+                }
+                let mut defs2 = defs
+                defs2[idx] = Some(cand)
+                let mut main2 = main
+                main2.push(names[idx])
+                if let Some(result) = search(tokens, pos + k, defs2, main2) {
+                    return Some(result)
+                }
+            }
+        }
+    }
+    None
+}
+
+fn compress(tokens: Vec<String>) -> ([Option<Vec<String>>; 3], Vec<String>) {
+    let defs: [Option<Vec<String>>; 3] = [None, None, None]
+    let main: Vec<String> = #[]
+    match search(tokens, 0, defs, main) {
+        Some(result) => result
+        None => panic!("no compression found")
+    }
+}
+
+fn collect_dust(mut program: Vec<i64>, field: Vec<Vec<char>>) -> i64 {
+    let (r, c, dr, dc) = find_robot(field)
+    let tokens = trace_path(field, r, c, dr, dc)
+    let (defs, routine) = compress(tokens)
+
+    let mut inputs: Vec<i64> = #[]
+    for part in #[
+        routine.join(",")
+        defs[0].unwrap().join(",")
+        defs[1].unwrap().join(",")
+        defs[2].unwrap().join(",")
+        "n"
+    ] {
+        inputs.extend((part + "\n").bytes().map(|b| b as i64))
+    }
+
+    program[0] = 2
+    let output = run_program(program, &inputs)
+    output[output.len() - 1]
+}
+
 fn main() {
     let input = fs::read_to_string("../input/d17.txt").unwrap()
     let program = parse_input(input)
-    let output = run_program(program)
-    let field = build_field(output)
-
-    // for line in field {
-    //     println(line.join(""))
-    // }
+    let field = build_field(run_program(program, &[]))
 
     let part1 = alignment_sum(field)
-    println!("Part 1: {}", part1)
+    let part2 = collect_dust(program, field)
 
-    let part2 = 0
+    println!("Part 1: {}", part1)
     println!("Part 2: {}", part2)
 }
