@@ -3,6 +3,22 @@ use std::fs
 const ROWS: i64 = 6
 const COLS: i64 = 25
 
+fn pixel_color(pixel: i64, layers: Vec<Vec<char>>) -> char {
+    layers
+        .map(|layer| layer[pixel])
+        .skip_while(|e| e == '2')
+        .first()
+        .unwrap()
+}
+
+fn print_picture(pixels: Vec<char>) {
+    pixels
+        .map(|pixel| if pixel == '1' { '#' } else { ' ' })
+        .chunks(COLS)
+        .map(|chunk| chunk.join(""))
+        .for_each(println)
+}
+
 fn main() {
     let input = fs::read_to_string("../input/d08.txt").unwrap().trim()
     let layers = input.chars().chunks(ROWS * COLS)
@@ -22,20 +38,4 @@ fn main() {
     let pixels = (0..ROWS * COLS).map(|i| pixel_color(i, layers)).collect()
     println!("Part2:")
     print_picture(pixels)
-}
-
-fn pixel_color(pixel: i64, layers: Vec<Vec<char>>) -> char {
-    layers
-        .map(|layer| layer[pixel])
-        .skip_while(|e| e == '2')
-        .first()
-        .unwrap()
-}
-
-fn print_picture(pixels: Vec<char>) {
-    pixels
-        .map(|pixel| if pixel == '1' { '#' } else { ' ' })
-        .chunks(COLS)
-        .map(|chunk| chunk.join(""))
-        .for_each(println)
 }

@@ -1,16 +1,5 @@
 use std::fs
 
-fn main() {
-    let input = fs::read_to_string("../input/d06.txt").unwrap()
-    let orbit_map = parse_input(input)
-
-    let result1 = solve_part1(orbit_map)
-    println!("Total number of direct and indirect orbits: {}", result1)
-
-    let result2 = solve_part2(orbit_map)
-    println!("Minimum number of orbital transfers required: {}", result2)
-}
-
 fn parse_input(input: str) -> Map<String, String> {
     let mut orbit_map: Map<String, String> = {}
     for line in input.lines() {
@@ -76,4 +65,15 @@ fn get_path_to_com(orbit_map: Map<String, String>, start: String) -> Vec<String>
     }
 
     path
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d06.txt").unwrap()
+    let orbit_map = parse_input(input)
+
+    let result1 = solve_part1(orbit_map)
+    println!("Total number of direct and indirect orbits: {}", result1)
+
+    let result2 = solve_part2(orbit_map)
+    println!("Minimum number of orbital transfers required: {}", result2)
 }

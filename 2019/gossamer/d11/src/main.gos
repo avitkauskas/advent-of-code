@@ -3,7 +3,7 @@ use "example.com/intcode"
 
 fn parse_input(path: String) -> Vec<i64> {
     fs::read_to_string(path).unwrap()
-        .trim().split(',').map(|s| s.parse::<i64>().unwrap())
+        .trim().split(',').map(|s| s.to_i64().unwrap())
 }
 
 fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {

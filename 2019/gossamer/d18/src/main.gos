@@ -1,0 +1,196 @@
+use std::fs
+
+const DIRS: [(i64, i64); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+fn parse_grid(input: String) -> Vec<Vec<char>> {
+    input.trim().lines().map(|line| line.chars().collect())
+}
+
+fn find_cell(grid: Vec<Vec<char>>, target: char) -> (i64, i64) {
+    for r in 0..grid.len() {
+        for c in 0..grid[0].len() {
+            if grid[r][c] == target {
+                return (r, c)
+            }
+        }
+    }
+    panic!("no {} in grid", target)
+}
+
+fn key_positions(grid: Vec<Vec<char>>) -> Map<char, (i64, i64)> {
+    let mut keys: Map<char, (i64, i64)> = Map::new()
+    for r in 0..grid.len() {
+        for c in 0..grid[0].len() {
+            if grid[r][c] >= 'a' && grid[r][c] <= 'z' {
+                keys.insert(grid[r][c], (r, c))
+            }
+        }
+    }
+    keys
+}
+
+fn all_keys_mask(grid: Vec<Vec<char>>) -> i64 {
+    let mut mask = 0
+    for ch in key_positions(grid).keys() {
+        mask |= 1 << (ch as i64 - 'a' as i64)
+    }
+    mask
+}
+
+// BFS from one point of interest: for every key reachable, the walk distance
+// and the doors crossed on a shortest route there. Keys along the way are
+// plain walkable floor; only doors gate movement.
+fn bfs_edges(grid: Vec<Vec<char>>, sr: i64, sc: i64) -> [Option<(i64, i64)>; 26] {
+    let mut edges: [Option<(i64, i64)>; 26] = [None; 26]
+    let mut seen: Set<(i64, i64)> = Set::new()
+    let mut frontier: Queue<(i64, i64, i64, i64)> = Queue::new()
+    frontier.push((sr, sc, 0, 0))
+    seen.insert((sr, sc))
+    while let Some((r, c, dist, doors)) = frontier.pop() {
+        for (dr, dc) in DIRS {
+            let nr = r + dr
+            let nc = c + dc
+            let ch = grid[nr][nc]
+            if ch == '#' || seen.contains((nr, nc)) {
+                continue
+            }
+            let mut ndoors = doors
+            if ch >= 'A' && ch <= 'Z' {
+                ndoors |= 1 << (ch as i64 - 'A' as i64)
+            }
+            if ch >= 'a' && ch <= 'z' {
+                edges[ch as i64 - 'a' as i64] = Some((dist + 1, ndoors))
+            }
+            seen.insert((nr, nc))
+            frontier.push((nr, nc, dist + 1, ndoors))
+        }
+    }
+    edges
+}
+
+// One BFS row per point of interest, indexed by position value:
+// row j holds the edges seen from key 'a' + j, the trailing rows those from the entrance(s).
+fn poi_tables(grid: Vec<Vec<char>>, starts: Vec<(i64, i64)>) -> Vec<[Option<(i64, i64)>; 26]> {
+    let keys = key_positions(grid)
+    let mut tables: Vec<[Option<(i64, i64)>; 26]> = #[]
+    for j in 0..26 {
+        let (kr, kc) = keys.get(('a' as i64 + j) as char).unwrap()
+        tables.push(bfs_edges(grid, kr, kc))
+    }
+    for (sr, sc) in starts {
+        tables.push(bfs_edges(grid, sr, sc))
+    }
+    tables
+}
+
+// Dijkstra over states (position of interest, collected-key bitmask),
+// moving between points of interest along the precomputed key-to-key edges.
+// Position 26 is the single entrance; position j is key 'a' + j.
+fn shortest_all_keys(grid: Vec<Vec<char>>) -> i64 {
+    let (sr, sc) = find_cell(grid, '@')
+    let tables = poi_tables(grid, #[(sr, sc)])
+
+    let all = all_keys_mask(grid)
+    let mut best: Map<i64, i64> = Map::new()
+    let mut heap: MinHeap<(i64, i64)> = MinHeap::new()
+    let start_state = 26 << 26
+    best.insert(start_state, 0)
+    heap.push((0, start_state))
+    while let Some((cost, state)) = heap.pop() {
+        if cost > best.get(state).unwrap() {
+            continue
+        }
+        let pos = state >> 26
+        let mask = state & ((1 << 26) - 1)
+        if mask == all {
+            return cost
+        }
+        for j in 0..26 {
+            let bit = 1 << j
+            if mask & bit != 0 {
+                continue
+            }
+            if let Some((d, doors)) = tables[pos][j] {
+                if doors & mask == doors {
+                    let ncost = cost + d
+                    let nstate = (j << 26) | (mask | bit)
+                    if !best.contains(nstate) || ncost < best.get(nstate).unwrap() {
+                        best.insert(nstate, ncost)
+                        heap.push((ncost, nstate))
+                    }
+                }
+            }
+        }
+    }
+    panic!("no route collects every key")
+}
+
+// The entrance becomes a four-robot vault: the cross around '@' turns to wall
+// and each corner starts one robot. State is the four robots' positions plus
+// the key bitmask; every move advances exactly one robot onto a new key.
+// Positions 26..29 are the robots' corners; position j is key 'a' + j.
+fn shortest_four_robots(mut grid: Vec<Vec<char>>) -> i64 {
+    let (r, c) = find_cell(grid, '@')
+    grid[r][c] = '#'
+    grid[r - 1][c] = '#'
+    grid[r + 1][c] = '#'
+    grid[r][c - 1] = '#'
+    grid[r][c + 1] = '#'
+
+    let tables = poi_tables(grid, #[
+        (r - 1, c - 1)
+        (r - 1, c + 1)
+        (r + 1, c - 1)
+        (r + 1, c + 1)
+    ])
+
+    let all = all_keys_mask(grid)
+    let mut best: Map<i64, i64> = Map::new()
+    let mut heap: MinHeap<(i64, i64)> = MinHeap::new()
+    let start_state = 26 | (27 << 5) | (28 << 10) | (29 << 15)
+    best.insert(start_state, 0)
+    heap.push((0, start_state))
+    while let Some((cost, state)) = heap.pop() {
+        if cost > best.get(state).unwrap() {
+            continue
+        }
+        let ps = [state & 31, (state >> 5) & 31, (state >> 10) & 31, (state >> 15) & 31]
+        let mask = state >> 20
+        if mask == all {
+            return cost
+        }
+        for i in 0..4 {
+            for j in 0..26 {
+                let bit = 1 << j
+                if mask & bit != 0 {
+                    continue
+                }
+                if let Some((d, doors)) = tables[ps[i]][j] {
+                    if doors & mask == doors {
+                        let mut nps = ps
+                        nps[i] = j
+                        let nstate = nps[0] | (nps[1] << 5) | (nps[2] << 10)
+                        | (nps[3] << 15) | ((mask | bit) << 20)
+                        let ncost = cost + d
+                        if !best.contains(nstate) || ncost < best.get(nstate).unwrap() {
+                            best.insert(nstate, ncost)
+                            heap.push((ncost, nstate))
+                        }
+                    }
+                }
+            }
+        }
+    }
+    panic!("no route collects every key")
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d18.txt").unwrap()
+    let grid = parse_grid(input)
+
+    let part1 = shortest_all_keys(grid)
+    println!("Part 1: {}", part1)
+
+    let part2 = shortest_four_robots(grid)
+    println!("Part 2: {}", part2)
+}
