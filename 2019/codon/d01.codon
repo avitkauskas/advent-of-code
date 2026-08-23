@@ -1,0 +1,27 @@
+def fuel(mass: int) -> int:
+    return mass // 3 - 2
+
+
+def total_fuel(mass: int) -> int:
+    total = 0
+    current = mass
+    while current > 0:
+        f = max(fuel(current), 0)
+        total += f
+        current = f
+    return total
+
+
+def parse_input(path: str):
+    with open(path) as f:
+        return [int(line) for line in f.read().strip().split("\n") if line]
+
+
+def main():
+    masses = parse_input("../input/d01.txt")
+    print("part1:", sum(fuel(m) for m in masses))
+    print("part2:", sum(total_fuel(m) for m in masses))
+
+
+if __name__ == "__main__":
+    main()

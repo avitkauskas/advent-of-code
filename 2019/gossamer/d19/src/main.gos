@@ -1,0 +1,46 @@
+use std::fs
+use "example.com/intcode"
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
+}
+
+fn affected_points(beam: Fn(&[i64]) -> i64) -> i64 {
+    let mut affected = 0
+    for x in ..50 {
+        for y in ..50 {
+            affected += beam(&[x, y])
+        }
+    }
+    affected
+}
+
+fn coordinates_code(beam: Fn(&[i64]) -> i64) -> i64 {
+    let (mut x, mut y) = (99, 0)
+    loop {
+        if beam(&[x, y]) == 0 {
+            y += 1
+            continue
+        }
+        if beam(&[x - 99, y]) == 1 && beam(&[x - 99, y + 99]) == 1 {
+            return (x - 99) * 10_000 + y
+        }
+        x += 1
+    }
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d19.txt").unwrap()
+    let program = parse_input(input)
+    let tractor_beam = |input: &[i64]| -> i64 {
+        let mut computer = intcode::IntcodeComputer::new(program)
+        computer.run(input)
+    }
+
+    let part1 = affected_points(tractor_beam)
+    let part2 = coordinates_code(tractor_beam)
+
+    println!("Part 1: {}", part1)
+    println!("Part 2: {}", part2)
+
+}

@@ -1,0 +1,6 @@
+[project]
+id = "example.com/d19"
+version = "0.1.0"
+
+[dependencies]
+"example.com/intcode" = { path = "../intcode" }

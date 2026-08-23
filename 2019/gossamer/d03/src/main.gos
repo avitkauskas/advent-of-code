@@ -1,11 +1,5 @@
 use std::fs
 
-fn main() {
-    let wires = fs::read_to_string("../input/d03.txt").unwrap().lines()
-    println!("Part1: {}", solve_part1(wires))
-    println!("Part2: {}", solve_part2(wires))
-}
-
 struct Point {
     x: i64
     y: i64
@@ -68,4 +62,10 @@ fn trace_wire(path: String) -> (Set<Point>, Map<Point, i64>) {
     }
 
     (points, steps)
+}
+
+fn main() {
+    let wires = fs::read_to_string("../input/d03.txt").unwrap().lines()
+    println!("Part1: {}", solve_part1(wires))
+    println!("Part2: {}", solve_part2(wires))
 }

@@ -25,3 +25,9 @@ executable d02
     import:           common-settings
     main-is:          Day02.hs
     -- other-modules:
+
+executable d03
+    import:           warnings
+    import:           common-settings
+    main-is:          Day03.hs
+    build-depends:    containers

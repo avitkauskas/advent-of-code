@@ -1,0 +1,55 @@
+module Main (main) where
+
+import qualified Data.Map.Strict as M
+
+type Point = (Int, Int)
+
+delta :: Char -> Point
+delta 'R' = (1, 0)
+delta 'L' = (-1, 0)
+delta 'U' = (0, 1)
+delta 'D' = (0, -1)
+delta c = error ("unknown direction: " ++ show c)
+
+splitOnComma :: String -> [String]
+splitOnComma s = case break (== ',') s of
+  (w, []) -> [w | not (null w)]
+  (w, _ : rest) -> w : splitOnComma rest
+
+parseMoves :: String -> [(Char, Int)]
+parseMoves line = [move tok | tok <- splitOnComma line]
+  where
+    move (d : n) = (d, read n)
+    move [] = error "empty move"
+
+traceWire :: [(Char, Int)] -> M.Map Point Int
+traceWire = go (0, 0) 0 M.empty
+  where
+    go _ _ acc [] = acc
+    go (x, y) t acc ((dir, n) : rest) =
+      let (dx, dy) = delta dir
+          acc' =
+            foldl'
+              (\m k -> M.insertWith min (x + dx * k, y + dy * k) (t + k) m)
+              acc
+              [1 .. n]
+       in go (x + dx * n, y + dy * n) (t + n) acc' rest
+
+solve :: M.Map Point Int -> M.Map Point Int -> (Int, Int)
+solve traceA traceB = (part1, part2)
+  where
+    crossings = M.delete (0, 0) (M.intersectionWith (,) traceA traceB)
+    part1 = minimum [abs x + abs y | ((x, y), _) <- M.toList crossings]
+    part2 = minimum [sa + sb | (_, (sa, sb)) <- M.toList crossings]
+
+main :: IO ()
+main = do
+  input <- readFile "../input/d03.txt"
+  let traces = map (traceWire . parseMoves) (filter (not . null) (lines input))
+  case traces of
+    [traceA, traceB] ->
+      let (part1, part2) = solve traceA traceB
+       in do
+            putStrLn $ "part1: " ++ show part1
+            putStrLn $ "part2: " ++ show part2
+    _ -> error "expected exactly two wire paths"
