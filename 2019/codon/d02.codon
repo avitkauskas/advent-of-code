@@ -1,0 +1,56 @@
+from typing import List, Tuple
+
+TARGET_OUTPUT = 19690720
+
+
+def parse_input(path: str):
+    with open(path) as f:
+        return [int(tok) for tok in f.read().strip().split(",") if tok]
+
+
+def run_intcode(program: List[int]) -> int:
+    mem = program[:]  # copy so the caller's program is not mutated
+    ip = 0
+    while True:
+        opcode = mem[ip]
+        if opcode == 99:
+            return mem[0]
+        a = mem[mem[ip + 1]]
+        b = mem[mem[ip + 2]]
+        dst = mem[ip + 3]
+        if opcode == 1:
+            mem[dst] = a + b
+        elif opcode == 2:
+            mem[dst] = a * b
+        else:
+            raise Exception(f"unknown opcode {opcode}")
+        ip += 4
+
+
+def with_noun_verb(program: List[int], noun: int, verb: int) -> List[int]:
+    p = program[:]
+    p[1] = noun
+    p[2] = verb
+    return p
+
+
+def find_noun_verb(program: List[int]) -> Tuple[int, int]:
+    for noun in range(100):
+        for verb in range(100):
+            if run_intcode(with_noun_verb(program, noun, verb)) == TARGET_OUTPUT:
+                return (noun, verb)
+    raise Exception("no noun/verb found")
+
+
+def main():
+    program = parse_input("../input/d02.txt")
+
+    part1 = run_intcode(with_noun_verb(program, 12, 2))
+    print("part1:", part1)
+
+    noun, verb = find_noun_verb(program)
+    print("part2:", 100 * noun + verb)
+
+
+if __name__ == "__main__":
+    main()

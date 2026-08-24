@@ -1,0 +1,185 @@
+use std::fs
+
+const DIRS: [(i64, i64); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+struct Maze {
+    start: (i64, i64)
+    end: (i64, i64)
+    warp: Map<(i64, i64), (i64, i64)>
+}
+
+fn parse_grid(input: String) -> Vec<Vec<char>> {
+    input.lines().map(|line| line.chars().collect())
+}
+
+fn is_letter(ch: char) -> bool {
+    ch >= 'A' && ch <= 'Z'
+}
+
+// The label beside a passage tile is the two letter cells on one side of it,
+// read in reading order: left/right pairs go left to right, upper/lower
+// pairs go top to bottom. (dr, dc) points from the tile toward the letters;
+// moving against the reading direction puts the farther cell first.
+fn label_toward(grid: Vec<Vec<char>>, r: i64, c: i64, dr: i64, dc: i64) -> Option<String> {
+    let (fr, fc) = (r + 2 * dr, c + 2 * dc)
+    let (nr, nc) = (r + dr, c + dc)
+    if fr < 0 || fr >= grid.len() || fc < 0 || fc >= grid[fr].len() {
+        return None
+    }
+    if nr < 0 || nr >= grid.len() || nc < 0 || nc >= grid[nr].len() {
+        return None
+    }
+    let (far, near) = (grid[fr][fc], grid[nr][nc])
+    if !is_letter(near) || !is_letter(far) {
+        return None
+    }
+    if dr + dc < 0 {
+        Some(format!("{}{}", far, near))
+    } else {
+        Some(format!("{}{}", near, far))
+    }
+}
+
+fn parse_maze(grid: Vec<Vec<char>>) -> Maze {
+    let mut labels: Map<String, Vec<(i64, i64)>> = Map::new()
+    for r in 0..grid.len() {
+        for c in 0..grid[r].len() {
+            if grid[r][c] != '.' {
+                continue
+            }
+            for (dr, dc) in DIRS {
+                if let Some(name) = label_toward(grid, r, c, dr, dc) {
+                    labels.or_insert(name, #[]).push((r, c))
+                }
+            }
+        }
+    }
+
+    let start = labels.pop("AA").unwrap()[0]
+    let end = labels.pop("ZZ").unwrap()[0]
+
+    let mut warp: Map<(i64, i64), (i64, i64)> = Map::new()
+    for (_, cells) in labels {
+        if cells.len() == 2 {
+            warp.insert(cells[0], cells[1])
+            warp.insert(cells[1], cells[0])
+        }
+    }
+    Maze { start: start, end: end, warp: warp }
+}
+
+// Plain BFS over passage tiles: each move is one step to a walkable
+// neighbour, or one step through a portal to its partner tile.
+fn fewest_steps(grid: Vec<Vec<char>>, maze: Maze) -> i64 {
+    let mut seen: Set<(i64, i64)> = Set::new()
+    let mut queue: Queue<((i64, i64), i64)> = Queue::new()
+    seen.insert(maze.start)
+    queue.push((maze.start, 0))
+    while let Some((pos, dist)) = queue.pop() {
+        if pos == maze.end {
+            return dist
+        }
+        let mut moves: Vec<(i64, i64)> = #[]
+        for (dr, dc) in DIRS {
+            let next = (pos.0 + dr, pos.1 + dc)
+            if grid[next.0][next.1] == '.' {
+                moves.push(next)
+            }
+        }
+        if let Some(jump) = maze.warp.get(pos) {
+            moves.push(jump)
+        }
+        for next in moves {
+            if !seen.contains(next) {
+                seen.insert(next)
+                queue.push((next, dist + 1))
+            }
+        }
+    }
+    panic!("ZZ is unreachable from AA")
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d20.txt").unwrap()
+    let grid = parse_grid(input)
+
+    let maze = parse_maze(grid)
+    println!("Part 1: {}", fewest_steps(grid, maze))
+}
+
+#[cfg(test)]
+mod main_tests {
+    #[test]
+    fn small_donut_needs_23_steps() {
+        let lines = """
+                 A
+                 A
+          #######.#########
+          #######.........# 
+          #######.#######.# 
+          #######.#######.# 
+          #######.#######.# 
+          #####  B    ###.# 
+        BC...##  C    ###.# 
+          ##.##       ###.# 
+          ##...DE  F  ###.# 
+          #####    G  ###.# 
+          #########.#####.# 
+        DE..#######...###.# 
+          #.#########.###.# 
+        FG..#########.....# 
+          ###########.##### 
+                     Z 
+                     Z 
+        """
+        let grid = super::parse_grid(lines)
+        let maze = super::parse_maze(grid)
+        assert_eq(super::fewest_steps(grid, maze), 23, "small donut")
+    }
+
+    #[test]
+    fn large_donut_needs_58_steps() {
+        let lines = """
+                           A
+                           A
+          #################.#############
+          #.#...#...................#.#.#
+          #.#.#.###.###.###.#########.#.#
+          #.#.#.......#...#.....#.#.#...#
+          #.#########.###.#####.#.#.###.#
+          #.............#.#.....#.......#
+          ###.###########.###.#####.#.#.#
+          #.....#        A   C    #.#.#.#
+          #######        S   P    #####.#
+          #.#...#                 #......VT
+          #.#.#.#                 #.#####
+          #...#.#               YN....#.#
+          #.###.#                 #####.#
+        DI....#.#                 #.....#
+          #####.#                 #.###.#
+        ZZ......#               QG....#..AS
+          ###.###                 #######
+        JO..#.#.#                 #.....#
+          #.#.#.#                 ###.#.#
+          #...#..DI             BU....#..LF
+          #####.#                 #.#####
+        YN......#               VT..#....QG
+          #.###.#                 #.###.#
+          #.#...#                 #.....#
+          ###.###    J L     J    #.#.###
+          #.....#    O F     P    #.#...#
+          #.###.#####.#.#####.#####.###.#
+          #...#.#.#...#.....#.....#.#...#
+          #.#####.###.###.#.#.#########.#
+          #...#.#.....#...#.#.#.#.....#.#
+          #.###.#####.###.###.#.#.#######
+          #.#.........#...#.............#
+          #########.###.###.#############
+                   B   J   C
+                   U   P   P
+        """
+        let grid = super::parse_grid(lines)
+        let maze = super::parse_maze(grid)
+        assert_eq(super::fewest_steps(grid, maze), 58, "large donut")
+    }
+}
