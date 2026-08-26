@@ -43,13 +43,13 @@ impl IntcodeComputer {
             0 => self.read_memory(value)
             1 => value
             2 => self.read_memory(value + self.relative_base)
-            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
+            _ => panic("Unknown parameter mode: {}", modes[offset - 1])
         }
     }
 
     fn read_memory(self, addr: i64) -> i64 {
         if addr < 0 {
-            panic!("Invalid memory access at negative address {}", addr)
+            panic("Invalid memory access at negative address {}", addr)
         }
         self.memory.get_or(addr, 0)
     }
@@ -59,16 +59,16 @@ impl IntcodeComputer {
         let addr = match modes[offset - 1] {
             0 => param
             2 => param + self.relative_base
-            1 => panic!("Cannot write in immediate mode")
-            _ => panic!("Unknown parameter mode: {}", modes[offset - 1])
+            1 => panic("Cannot write in immediate mode")
+            _ => panic("Unknown parameter mode: {}", modes[offset - 1])
         }
         if addr < 0 {
-            panic!("Invalid memory access at negative address {}", addr)
+            panic("Invalid memory access at negative address {}", addr)
         }
         self.memory.insert(addr, value)
     }
 
-    pub fn run(&mut self, new_inputs: &[i64]) -> i64 {
+    pub fn run(&mut self, new_inputs: [i64]) -> i64 {
         self.inputs.extend(new_inputs)
         loop {
             let instruction = self.read_memory(self.position)
@@ -132,7 +132,7 @@ impl IntcodeComputer {
                     self.relative_base += self.get_param(1, modes)
                     self.position += 2
                 }
-                _ => panic!("Unknown opcode: {}", opcode)
+                _ => panic("Unknown opcode: {}", opcode)
             }
         }
         self.last_output
@@ -159,7 +159,7 @@ impl IntcodeComputer {
 mod intcode_tests {
     fn run_program(program: Vec<i64>, input: i64) -> Vec<i64> {
         let mut computer = super::IntcodeComputer::new(program)
-        computer.run(&[input])
+        computer.run([input])
         computer.outputs
     }
 

@@ -33,9 +33,9 @@ fn main() {
     let min_layer = layers[min_layer_index]
 
     let part1 = min_layer.count_of('1') * min_layer.count_of('2')
-    println!("Part1: {}", part1)
+    println("Part1: {}", part1)
 
     let pixels = (0..ROWS * COLS).map(|i| pixel_color(i, layers)).collect()
-    println!("Part2:")
+    println("Part2:")
     print_picture(pixels)
 }

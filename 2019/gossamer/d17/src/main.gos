@@ -7,7 +7,7 @@ fn parse_input(input: String) -> Vec<i64> {
     input.trim().split(',').map(|s| s.to_i64().unwrap())
 }
 
-fn run_program(program: Vec<i64>, inputs: &[i64]) -> Vec<i64> {
+fn run_program(program: Vec<i64>, inputs: [i64]) -> Vec<i64> {
     let mut computer = intcode::IntcodeComputer::new(program)
     computer.run(inputs)
     computer.all_outputs()
@@ -68,7 +68,7 @@ fn find_robot(field: Vec<Vec<char>>) -> (i64, i64, i64, i64) {
             }
         }
     }
-    panic!("no robot found")
+    panic("no robot found")
 }
 
 fn trace_path(field: Vec<Vec<char>>, mut r: i64, mut c: i64, mut dr: i64, mut dc: i64) -> Vec<String> {
@@ -168,14 +168,14 @@ fn compress(tokens: Vec<String>) -> ([Option<Vec<String>>; 3], Vec<String>) {
     let main: Vec<String> = #[]
     match search(tokens, 0, defs, main) {
         Some(result) => result
-        None => panic!("no compression found")
+        None => panic("no compression found")
     }
 }
 
 fn collect_dust(mut program: Vec<i64>, field: Vec<Vec<char>>) -> i64 {
-    let (r, c, dr, dc) = find_robot(field)
+    let r, c, dr, dc = find_robot(field)
     let tokens = trace_path(field, r, c, dr, dc)
-    let (defs, routine) = compress(tokens)
+    let defs, routine = compress(tokens)
 
     let mut inputs: Vec<i64> = #[]
     for part in #[
@@ -189,18 +189,18 @@ fn collect_dust(mut program: Vec<i64>, field: Vec<Vec<char>>) -> i64 {
     }
 
     program[0] = 2
-    let output = run_program(program, &inputs)
+    let output = run_program(program, inputs)
     output[output.len() - 1]
 }
 
 fn main() {
     let input = fs::read_to_string("../input/d17.txt").unwrap()
     let program = parse_input(input)
-    let field = build_field(run_program(program, &[]))
+    let field = build_field(run_program(program, []))
 
     let part1 = alignment_sum(field)
     let part2 = collect_dust(program, field)
 
-    println!("Part 1: {}", part1)
-    println!("Part 2: {}", part2)
+    println("Part 1: {}", part1)
+    println("Part 2: {}", part2)
 }

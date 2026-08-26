@@ -8,12 +8,12 @@ struct Reaction {
 fn parse_input(input: String) -> Map<String, Reaction> {
     Map::from(
         input.lines().map(|line| {
-            let (ingredients_str, output_str) = line.split(" => ")
-            let (out_qty, out_name) = output_str.split(" ")
+            let ingredients_str, output_str = line.split(" => ")
+            let out_qty, out_name = output_str.split(" ")
             let ingredient_parts: Vec<String> = ingredients_str.split(", ")
             let ingredients = Map::from(
                 ingredient_parts.map(|ingredient| {
-                    let (ing_qty, ing_name) = ingredient.split(" ")
+                    let ing_qty, ing_name = ingredient.split(" ")
                     (ing_name, ing_qty.to_i64().unwrap())
                 })
             )
@@ -75,9 +75,9 @@ fn main() {
     let reactions = parse_input(input)
 
     let part1 = ore_for_fuel(reactions, 1)
-    println!("Part 1 - ORE: {}", part1)
+    println("Part 1 - ORE: {}", part1)
 
     let have_ore = 1_000_000_000_000
     let part2 = max_fuel_for_ore(reactions, have_ore)
-    println!("Part 2 - FUEL: {}", part2)
+    println("Part 2 - FUEL: {}", part2)
 }

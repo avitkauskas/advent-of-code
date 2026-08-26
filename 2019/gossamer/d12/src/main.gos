@@ -32,7 +32,7 @@ fn apply_gravity(moons: &mut [Moon]) {
     let n = moons.len()
     for i in ..n {
         for j in (i + 1)..n {
-            let (gi, gj) = gravity(moons[i].pos, moons[j].pos)
+            let gi, gj = gravity(moons[i].pos, moons[j].pos)
             moons[i].vel.x += gi.x
             moons[i].vel.y += gi.y
             moons[i].vel.z += gi.z
@@ -58,7 +58,7 @@ fn simulate(steps: i64, moons: &mut [Moon]) {
     }
 }
 
-fn total_energy(moons: &[Moon]) -> i64 {
+fn total_energy(moons: [Moon]) -> i64 {
     let mut sum = 0
     for m in moons {
         let pot = m.pos.x.abs() + m.pos.y.abs() + m.pos.z.abs()
@@ -69,7 +69,7 @@ fn total_energy(moons: &[Moon]) -> i64 {
 }
 
 fn axis_period(start_pos: [i64; 4], start_vel: [i64; 4]) -> i64 {
-    let (mut p, mut v) = (start_pos, start_vel)
+    let mut p, mut v = (start_pos, start_vel)
     let mut n: i64 = 0
     loop {
         for i in ..4 {
@@ -89,7 +89,7 @@ fn axis_period(start_pos: [i64; 4], start_vel: [i64; 4]) -> i64 {
 }
 
 fn gcd(a: i64, b: i64) -> i64 {
-    let (mut x, mut y) = (a.abs(), b.abs())
+    let mut x, mut y = (a.abs(), b.abs())
     while y != 0 {
         let t = y
         y = x % y
@@ -111,10 +111,10 @@ fn main() {
     let pz = [moons[0].pos.z, moons[1].pos.z, moons[2].pos.z, moons[3].pos.z]
 
     simulate(1000, &mut moons)
-    println!("Part 1: {}", total_energy(&moons))
+    println("Part 1: {}", total_energy(moons))
 
     let x = axis_period(px, [0; 4])
     let y = axis_period(py, [0; 4])
     let z = axis_period(pz, [0; 4])
-    println!("Part 2: {}", lcm(x, lcm(y, z)))
+    println("Part 2: {}", lcm(x, lcm(y, z)))
 }

@@ -19,7 +19,7 @@ fn parse_asteroids(input: String) -> Vec<Coord> {
 }
 
 fn gcd(a: i64, b: i64) -> i64 {
-    let (mut x, mut y) = (a.abs(), b.abs())
+    let mut x, mut y = (a.abs(), b.abs())
     while y != 0 {
         let t = y
         y = x % y
@@ -28,7 +28,7 @@ fn gcd(a: i64, b: i64) -> i64 {
     x
 }
 
-fn count_visible(from: i64, asteroids: &[Coord]) -> i64 {
+fn count_visible(from: i64, asteroids: [Coord]) -> i64 {
     let mut directions: Set<(i64, i64)> = #{}
     for i in ..asteroids.len() {
         if i == from {
@@ -42,7 +42,7 @@ fn count_visible(from: i64, asteroids: &[Coord]) -> i64 {
     directions.len()
 }
 
-fn best_location(asteroids: &[Coord]) -> (i64, i64, i64) {
+fn best_location(asteroids: [Coord]) -> (i64, i64, i64) {
     let mut best = (0, 0, 0)
     for i in ..asteroids.len() {
         let count = count_visible(i, asteroids)
@@ -58,7 +58,7 @@ fn angle_key(dx: i64, dy: i64) -> f64 {
     if a < 0.0 { a + 2.0 * math::PI } else { a }
 }
 
-fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> {
+fn vaporization_order(asteroids: [Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> {
     let mut records: Vec<(f64, i64, i64, i64, i64, i64)> = #[]
     for a in asteroids {
         let dx = a.x - sx
@@ -78,7 +78,7 @@ fn vaporization_order(asteroids: &[Coord], sx: i64, sy: i64) -> Vec<(i64, i64)> 
     let mut cur_ny = 0
     let mut cur: Queue<(i64, i64)> = Queue::new()
     for rec in records {
-        let (_, nx, ny, _, x, y) = rec
+        let _, nx, ny, _, x, y = rec
         if cur.len() > 0 && (nx != cur_nx || ny != cur_ny) {
             groups.push(cur)
             cur = Queue::new()
@@ -111,10 +111,10 @@ fn main() {
     let input = fs::read_to_string("../input/d10.txt").unwrap()
     let asteroids = parse_asteroids(input)
 
-    let (x, y, count) = best_location(&asteroids)
-    println!("Part 1: best at ({},{}) detects {} asteroids", x, y, count)
+    let x, y, count = best_location(asteroids)
+    println("Part 1: best at ({},{}) detects {} asteroids", x, y, count)
 
-    let order = vaporization_order(&asteroids, x, y)
-    let (ox, oy) = order[199]
-    println!("Part 2: 200th vaporized at ({},{}), answer {}", ox, oy, ox * 100 + oy)
+    let order = vaporization_order(asteroids, x, y)
+    let ox, oy = order[199]
+    println("Part 2: 200th vaporized at ({},{}), answer {}", ox, oy, ox * 100 + oy)
 }

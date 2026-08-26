@@ -2,7 +2,7 @@ use std::fs
 
 fn parse_input(path: String) -> Vec<i64> {
     fs::read_to_string(path).unwrap()
-        .lines().map(|line| line.parse::<i64>().unwrap())
+        .lines().map(|line| line.to_i64().unwrap())
 }
 
 fn fuel_one(mass: i64) -> i64 {
@@ -28,6 +28,6 @@ fn main() {
     let part1 = modules.map(fuel_one).sum()
     let part2 = modules.map(fuel_rec).sum()
 
-    println!("Part 1: {}", part1)
-    println!("Part 2: {}", part2)
+    println("Part 1: {}", part1)
+    println("Part 2: {}", part2)
 }

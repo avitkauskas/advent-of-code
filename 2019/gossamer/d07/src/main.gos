@@ -6,7 +6,7 @@ fn run_amplifier_sequence(program: Vec<i64>, phase_settings: Vec<i64>) -> i64 {
 
     for phase in phase_settings {
         let mut computer = intcode::IntcodeComputer::new(program)
-        signal = computer.run(&[phase, signal])
+        signal = computer.run([phase, signal])
     }
 
     signal
@@ -16,11 +16,11 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
     let mut amplifiers = Vec::from([intcode::IntcodeComputer::new(program); 5])
 
     // Initialize first amplifier separately
-    let mut signal = amplifiers[0].run(&[phase_settings[0], 0])
+    let mut signal = amplifiers[0].run([phase_settings[0], 0])
 
     // Initialize remaining amplifiers
     for i in 1..5 {
-        signal = amplifiers[i].run(&[phase_settings[i], signal])
+        signal = amplifiers[i].run([phase_settings[i], signal])
     }
 
     let mut final_amplifier_output = signal
@@ -32,7 +32,7 @@ fn run_amplifier_feedback_loop(program: Vec<i64>, phase_settings: Vec<i64>) -> i
                 continue
             }
 
-            signal = amplifiers[i].run(&[signal])
+            signal = amplifiers[i].run([signal])
             if i == 4 {
                 final_amplifier_output = signal
             }
@@ -67,7 +67,7 @@ fn permutations(it: Iterator<i64>) -> Vec<Vec<i64>> {
 fn find_max_thruster_signal(
     program: Vec<i64>
     phase_range: Iterator<i64>
-    run_amplifiers: fn(Vec<i64>, Vec<i64>) -> i64
+    run_amplifiers: Fn(Vec<i64>, Vec<i64>) -> i64
 ) -> i64 {
     permutations(phase_range)
         .map(|phase_settings| run_amplifiers(program, phase_settings))
@@ -89,11 +89,11 @@ fn main() {
     let program: Vec<i64> = input
         .trim()
         .split(',')
-        .map(|x| x.parse::<i64>().unwrap())
+        .map(|x| x.to_i64().unwrap())
 
     let max_signal_part1 = solve_part1(program)
-    println!("Part 1 - Maximum thruster signal: {}", max_signal_part1)
+    println("Part 1 - Maximum thruster signal: {}", max_signal_part1)
 
     let max_signal_part2 = solve_part2(program)
-    println!("Part 2 - Maximum thruster signal with feedback loop: {}", max_signal_part2)
+    println("Part 2 - Maximum thruster signal with feedback loop: {}", max_signal_part2)
 }

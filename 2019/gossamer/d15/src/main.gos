@@ -13,7 +13,7 @@ fn reverse(cmd: i64) -> i64 {
         2 => 1
         3 => 4
         4 => 3
-        _ => panic!("unknown movement command {}", cmd)
+        _ => panic("unknown movement command {}", cmd)
     }
 }
 
@@ -23,7 +23,7 @@ fn delta(cmd: i64) -> (i64, i64) {
         2 => (0, 1)
         3 => (-1, 0)
         4 => (1, 0)
-        _ => panic!("unknown movement command {}", cmd)
+        _ => panic("unknown movement command {}", cmd)
     }
 }
 
@@ -35,12 +35,12 @@ fn explore(
     oxygen: &mut Option<(i64, i64)>
 ) {
     for cmd in DIRS {
-        let (dx, dy) = delta(cmd)
+        let dx, dy = delta(cmd)
         let next = (pos.0 + dx, pos.1 + dy)
         if visited.contains(next) {
             continue
         }
-        let status = computer.run(&[cmd])
+        let status = computer.run([cmd])
         visited.insert(next)
         match status {
             0 => ()
@@ -50,9 +50,9 @@ fn explore(
                     *oxygen = Some(next)
                 }
                 explore(computer, next, open, visited, oxygen)
-                let _ = computer.run(&[reverse(cmd)])
+                let _ = computer.run([reverse(cmd)])
             }
-            _ => panic!("unknown status code {}", status)
+            _ => panic("unknown status code {}", status)
         }
     }
 }
@@ -68,7 +68,7 @@ fn shortest_path(open: Set<(i64, i64)>, start: (i64, i64), target: (i64, i64)) -
             return d
         }
         for cmd in DIRS {
-            let (dx, dy) = delta(cmd)
+            let dx, dy = delta(cmd)
             let next = (pos.0 + dx, pos.1 + dy)
             if open.contains(next) && !dist.contains(next) {
                 dist.insert(next, d + 1)
@@ -76,7 +76,7 @@ fn shortest_path(open: Set<(i64, i64)>, start: (i64, i64), target: (i64, i64)) -
             }
         }
     }
-    panic!("oxygen system unreachable")
+    panic("oxygen system unreachable")
 }
 
 fn fill_time(open: Set<(i64, i64)>, start: (i64, i64)) -> i64 {
@@ -91,7 +91,7 @@ fn fill_time(open: Set<(i64, i64)>, start: (i64, i64)) -> i64 {
             max_d = d
         }
         for cmd in DIRS {
-            let (dx, dy) = delta(cmd)
+            let dx, dy = delta(cmd)
             let next = (pos.0 + dx, pos.1 + dy)
             if open.contains(next) && !dist.contains(next) {
                 dist.insert(next, d + 1)
@@ -116,8 +116,8 @@ fn main() {
 
     let target = oxygen.unwrap()
     let part1 = shortest_path(open, (0, 0), target)
-    println!("Part 1 - Fewest movement commands: {}", part1)
+    println("Part 1 - Fewest movement commands: {}", part1)
 
     let part2 = fill_time(open, target)
-    println!("Part 2 - Minutes to fill area: {}", part2)
+    println("Part 2 - Minutes to fill area: {}", part2)
 }

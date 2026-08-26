@@ -58,7 +58,7 @@ fn main() {
     for _ in ..100 {
         phase_result(&mut signal)
     }
-    println!("Part 1: {}", signal.take(8).join(""))
+    println("Part 1: {}", signal.take(8).join(""))
 
     let mut offset = 0
     for k in 0..7 {
@@ -76,5 +76,5 @@ fn main() {
     for _ in ..100 {
         suffix_phase(&mut tail)
     }
-    println!("Part 2: {}", tail.take(8).join(""))
+    println("Part 2: {}", tail.take(8).join(""))
 }

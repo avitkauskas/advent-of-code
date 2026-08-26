@@ -11,11 +11,11 @@ fn main() {
 
     // Part 1
     let mut computer1 = intcode::IntcodeComputer::new(program)
-    let result1 = computer1.run(&[1])
-    println!("Part 1 - Air conditioner diagnostic code: {}", result1)
+    let result1 = computer1.run([1])
+    println("Part 1 - Air conditioner diagnostic code: {}", result1)
 
     // Part 2
     let mut computer2 = intcode::IntcodeComputer::new(program)
-    let result2 = computer2.run(&[5])
-    println!("Part 2 - Thermal radiator diagnostic code: {}", result2)
+    let result2 = computer2.run([5])
+    println("Part 2 - Thermal radiator diagnostic code: {}", result2)
 }

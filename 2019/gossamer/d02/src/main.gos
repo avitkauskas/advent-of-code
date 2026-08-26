@@ -12,7 +12,7 @@ fn program_step(program: &mut [i64], pos: i64, op: i64) {
     match op {
         1 => program[tg] = program[p1] + program[p2]
         2 => program[tg] = program[p1] * program[p2]
-        _ => panic!("Unknown opcode encountered!")
+        _ => panic("Unknown opcode encountered!")
     }
 }
 
@@ -56,8 +56,8 @@ fn main() {
     let program = parse_input("../input/d02.txt")
 
     let part1 = solve_part1(program)
-    println!("Part 1: Value at position 0: {}", part1)
+    println("Part 1: Value at position 0: {}", part1)
 
     let part2 = solve_part2(program)
-    println!("Part 2: 100 * noun + verb = {}", part2.unwrap_or(-1))
+    println("Part 2: 100 * noun + verb = {}", part2.unwrap_or(-1))
 }

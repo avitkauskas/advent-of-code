@@ -17,7 +17,7 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {
 
     loop {
         let color = panels.get_or(pos, 0)
-        computer.run(&[color])
+        computer.run([color])
 
         if computer.output_count() == consumed {
             break
@@ -32,7 +32,7 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {
         dir = match turn {
             0 => (dir + 3) % 4
             1 => (dir + 1) % 4
-            _ => unreachable!()
+            _ => unreachable()
         }
 
         match dir {
@@ -40,7 +40,7 @@ fn paint(program: Vec<i64>, start_color: i64) -> (i64, Map<(i64, i64), i64>) {
             1 => pos.0 += 1
             2 => pos.1 -= 1
             3 => pos.0 -= 1
-            _ => unreachable!()
+            _ => unreachable()
         }
 
         if computer.is_halted() {
@@ -68,7 +68,7 @@ fn render(panels: Map<(i64, i64), i64>) {
             .map(|x| if panels.get_or((x, y), 0) == 1 { "#" } else { " " })
             .collect()
             .join("")
-        println!("{}", line)
+        println("{}", line)
     }
 }
 
@@ -76,11 +76,11 @@ fn main() {
     let program = parse_input("../input/d11.txt")
 
     // Part 1 - starting on a black panel
-    let (count, _) = paint(program, 0)
-    println!("Part 1 - Panels painted at least once: {}", count)
+    let count, _ = paint(program, 0)
+    println("Part 1 - Panels painted at least once: {}", count)
 
     // Part 2 - starting on a white panel
-    let (_, panels) = paint(program, 1)
-    println!("Part 2 - Registration identifier:")
+    let _, panels = paint(program, 1)
+    println("Part 2 - Registration identifier:")
     render(panels)
 }

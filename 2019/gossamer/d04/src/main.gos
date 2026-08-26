@@ -3,10 +3,10 @@ fn main() {
     let end = 579_381
 
     let result1 = solve_part1(start, end)
-    println!("Part 1 - Number of valid passwords: {}", result1)
+    println("Part 1 - Number of valid passwords: {}", result1)
 
     let result2 = solve_part2(start, end)
-    println!("Part 2 - Number of valid passwords: {}", result2)
+    println("Part 2 - Number of valid passwords: {}", result2)
 }
 
 fn solve_part1(start: i64, end: i64) -> i64 {
