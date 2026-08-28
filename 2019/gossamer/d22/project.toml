@@ -1,5 +1,5 @@
 [project]
-id = "example.com/d21"
+id = "example.com/d22"
 version = "0.1.0"
 
 [dependencies]

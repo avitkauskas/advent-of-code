@@ -30,16 +30,101 @@ fn get_number(s: String) -> i64 {
 
 fn shuffle(deck: &mut Vec<i64>, technique: String) {
     if technique == "deal into new stack" {
-        deal_into_new_stack(deck)
+        return deal_into_new_stack(deck)
     }
     if technique.starts_with("cut") {
         let n = get_number(technique)
-        cut(deck, n)
+        return cut(deck, n)
     }
     if technique.starts_with("deal with increment") {
         let n = get_number(technique)
-        deal_with_increment(deck, n)
+        return deal_with_increment(deck, n)
     }
+
+    panic("unknown shuffle technique")
+}
+
+fn mul_mod(mut a: i64, mut b: i64, m: i64) -> i64 {
+    let mut res: i64 = 0
+    a = (a % m + m) % m
+    b = (b % m + m) % m
+    while b > 0 {
+        if b % 2 == 1 {
+            res = (res + a) % m
+        }
+        a = (a + a) % m
+        b /= 2
+    }
+    res
+}
+
+fn pow_mod(mut base: i64, mut exp: i64, m: i64) -> i64 {
+    let mut res: i64 = 1
+    base = (base % m + m) % m
+    while exp > 0 {
+        if exp % 2 == 1 {
+            res = mul_mod(res, base, m)
+        }
+        base = mul_mod(base, base, m)
+        exp /= 2
+    }
+    res
+}
+
+fn mod_inv(a: i64, m: i64) -> i64 {
+    pow_mod(a, m - 2, m)
+}
+
+fn poly_compose(a2: i64, b2: i64, a1: i64, b1: i64, m: i64) -> (i64, i64) {
+    let a = mul_mod(a2, a1, m)
+    let b = (mul_mod(a2, b1, m) + b2) % m
+    (a, (b % m + m) % m)
+}
+
+fn poly_pow(mut a: i64, mut b: i64, mut exp: i64, m: i64) -> (i64, i64) {
+    let mut res_a = 1
+    let mut res_b = 0
+    while exp > 0 {
+        if exp % 2 == 1 {
+            res_a, res_b = poly_compose(a, b, res_a, res_b, m)
+        }
+        a, b = poly_compose(a, b, a, b, m)
+        exp /= 2
+    }
+    (res_a, res_b)
+}
+
+fn deal_into_new_stack_fn(a: i64, b: i64, m: i64) -> (i64, i64) {
+    let new_a = (-a % m + m) % m
+    let new_b = ((-b - 1) % m + m) % m
+    (new_a, new_b)
+}
+
+fn cut_fn(a: i64, b: i64, n: i64, m: i64) -> (i64, i64) {
+    let new_b = ((b - n) % m + m) % m
+    (a, new_b)
+}
+
+fn deal_with_increment_fn(a: i64, b: i64, n: i64, m: i64) -> (i64, i64) {
+    let new_a = mul_mod(a, n, m)
+    let new_b = mul_mod(b, n, m)
+    (new_a, new_b)
+}
+
+fn shuffle_long(technique: String, a: i64, b: i64, m: i64) -> (i64, i64) {
+    if technique == "deal into new stack" {
+        return deal_into_new_stack_fn(a, b, m)
+    }
+    if technique.starts_with("cut") {
+        let n = get_number(technique)
+        return cut_fn(a, b, n, m)
+    }
+    if technique.starts_with("deal with increment") {
+        let n = get_number(technique)
+        return deal_with_increment_fn(a, b, n, m)
+    }
+
+    panic("unknown shuffle technique")
 }
 
 fn main() {
@@ -47,8 +132,21 @@ fn main() {
     let techniques = input.lines()
     let mut deck = (0..DECK_SIZE).collect()
 
-    techniques.for_each(|technique| shuffle(&mut deck, technique))
+    for technique in techniques {
+        shuffle(&mut deck, technique)
+    }
 
     let part1 = deck.index_of(2019).unwrap()
     println("part 1: {part1}")
+
+    let mut a, mut b = 1, 0
+    for technique in techniques {
+        a, b = shuffle_long(technique, a, b, HUGE_DECK_SIZE)
+    }
+
+    let a_k, b_k = poly_pow(a, b, SHUFFLE_TIMES, HUGE_DECK_SIZE)
+    let diff = ((2020 - b_k) % HUGE_DECK_SIZE + HUGE_DECK_SIZE) % HUGE_DECK_SIZE
+
+    let part2 = mul_mod(diff, mod_inv(a_k, HUGE_DECK_SIZE), HUGE_DECK_SIZE)
+    println("part 2: {part2}")
 }
