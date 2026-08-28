@@ -1,0 +1,54 @@
+use std::fs
+
+const DECK_SIZE: i64 = 10_007
+const HUGE_DECK_SIZE: i64 = 119_315_717_514_047
+const SHUFFLE_TIMES: i64 = 101_741_582_076_661
+
+fn deal_into_new_stack(deck: &mut Vec<i64>) {
+    deck.reverse()
+}
+
+fn cut(deck: &mut Vec<i64>, mut n: i64) {
+    if n < 0 { n = DECK_SIZE + n }
+    let v1 = deck.take(n)
+    let v2 = deck.skip(n)
+    *deck = v2.chain(v1)
+}
+
+fn deal_with_increment(deck: &mut Vec<i64>, n: i64) {
+    let mut vec = #[0; DECK_SIZE]
+    deck.enumerate().for_each(|(i, e)| {
+        let k = i * n % DECK_SIZE
+        vec[k] = e
+    })
+    *deck = vec
+}
+
+fn get_number(s: String) -> i64 {
+    s.split(" ").last().unwrap().to_i64().unwrap()
+}
+
+fn shuffle(deck: &mut Vec<i64>, technique: String) {
+    if technique == "deal into new stack" {
+        deal_into_new_stack(deck)
+    }
+    if technique.starts_with("cut") {
+        let n = get_number(technique)
+        cut(deck, n)
+    }
+    if technique.starts_with("deal with increment") {
+        let n = get_number(technique)
+        deal_with_increment(deck, n)
+    }
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d22.txt").unwrap()
+    let techniques = input.lines()
+    let mut deck = (0..DECK_SIZE).collect()
+
+    techniques.for_each(|technique| shuffle(&mut deck, technique))
+
+    let part1 = deck.index_of(2019).unwrap()
+    println("part 1: {part1}")
+}

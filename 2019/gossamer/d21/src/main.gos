@@ -1,0 +1,63 @@
+use std::fs
+use "example.com/intcode"
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
+}
+
+fn run_springscript(program: Vec<i64>, script: String) -> i64 {
+    let mut computer = intcode::IntcodeComputer::new(program)
+    // let inputs = (script.trim() + "\n").bytes().map(|b| b as i64)
+    let inputs = script.bytes().map(|b| b as i64)
+    computer.run(inputs)
+    let outputs = computer.all_outputs()
+    let last = outputs[outputs.len() - 1]
+    if last > 127 {
+        last
+    } else {
+        let text = outputs.map(|n| n as char).join("")
+        eprintln("Springdroid failed:\n{}", text)
+        panic("Springdroid failed to cross")
+    }
+}
+
+fn part1(program: Vec<i64>) -> i64 {
+    let script = """
+    NOT A J
+    NOT B T
+    OR T J
+    NOT C T
+    OR T J
+    AND D J
+    WALK
+
+    """
+    run_springscript(program, script)
+}
+
+fn part2(program: Vec<i64>) -> i64 {
+    let script = """
+    OR E T
+    OR H T
+    OR A J
+    AND B J
+    AND C J
+    NOT J J
+    AND T J
+    AND D J
+    RUN
+
+    """
+    run_springscript(program, script)
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d21.txt").unwrap()
+    let program = parse_input(input)
+
+    let part1_ans = part1(program)
+    println("Part 1: {}", part1_ans)
+
+    let part2_ans = part2(program)
+    println("Part 2: {}", part2_ans)
+}
