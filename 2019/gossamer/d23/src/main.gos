@@ -1,0 +1,117 @@
+use std::fs
+use "example.com/intcode"
+
+const NETWORK_SIZE: i64 = 50
+const NAT_ADDRESS: i64 = 255
+
+struct Network {
+    computers: Vec<intcode::IntcodeComputer>
+    queues: Vec<Queue<(i64, i64)>>
+    output_index: Vec<i64>
+}
+
+impl Network {
+    fn new(program: Vec<i64>) -> Network {
+        let mut computers = #[]
+        let mut queues = #[]
+        for addr in ..NETWORK_SIZE {
+            let mut computer = intcode::IntcodeComputer::new(program)
+            computer.run([addr])
+            computers.push(computer)
+            queues.push(Queue::new())
+        }
+        Network {
+            computers: computers
+            queues: queues
+            output_index: #[0; NETWORK_SIZE]
+        }
+    }
+
+    fn step(&mut self, i: i64) -> (Vec<(i64, i64, i64)>, bool) {
+        let received = match self.queues[i].pop() {
+            Some((x, y)) => {
+                self.computers[i].run([x, y])
+                true
+            }
+            None => {
+                self.computers[i].run([-1])
+                false
+            }
+        }
+
+        let mut packets = #[]
+        let total = self.computers[i].output_count()
+        while self.output_index[i] + 2 < total {
+            let dest = self.computers[i].output(self.output_index[i])
+            let x = self.computers[i].output(self.output_index[i] + 1)
+            let y = self.computers[i].output(self.output_index[i] + 2)
+            self.output_index[i] += 3
+            packets.push((dest, x, y))
+        }
+        (packets, received)
+    }
+}
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
+}
+
+fn first_packet_to_nat(program: Vec<i64>) -> i64 {
+    let mut network = Network::new(program)
+    loop {
+        for i in ..NETWORK_SIZE {
+            let packets, _ = network.step(i)
+            for (dest, x, y) in packets {
+                if dest == NAT_ADDRESS {
+                    return y
+                }
+                network.queues[dest].push((x, y))
+            }
+        }
+    }
+}
+
+fn first_repeated_nat_y(program: Vec<i64>) -> i64 {
+    let mut network = Network::new(program)
+    let mut nat: Option<(i64, i64)> = None
+    let mut last_y: Option<i64> = None
+
+    loop {
+        let mut idle = true
+        for i in ..NETWORK_SIZE {
+            let packets, received = network.step(i)
+            if received {
+                idle = false
+            }
+            for (dest, x, y) in packets {
+                if dest == NAT_ADDRESS {
+                    nat = Some((x, y))
+                } else {
+                    idle = false
+                    network.queues[dest].push((x, y))
+                }
+            }
+        }
+
+        if idle {
+            if let Some((x, y)) = nat {
+                network.queues[0].push((x, y))
+                if last_y == Some(y) {
+                    return y
+                }
+                last_y = Some(y)
+            }
+        }
+    }
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d23.txt").unwrap()
+    let program = parse_input(input)
+
+    let part1 = first_packet_to_nat(program)
+    println("Part 1: {}", part1)
+
+    let part2 = first_repeated_nat_y(program)
+    println("Part 2: {}", part2)
+}
