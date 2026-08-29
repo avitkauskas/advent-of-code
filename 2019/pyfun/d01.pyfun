@@ -1,0 +1,29 @@
+extern type Path
+extern toPath: string -> Path = pathlib.Path
+extern readText: Path -> string = pathlib.Path.read_text
+extern fail: string -> a = sys.exit
+
+let parseMass line =
+  match String.toInt line:
+    case Some m: m
+    case None: fail f"cannot parse line as int: {line}"
+
+let fuel mass = mass // 3 - 2
+
+let totalFuel mass =
+  let f = fuel mass
+  if f <= 0 then 0
+  else f + totalFuel f
+
+let masses =
+  readText (toPath "../input/d01.txt")
+  |> String.split "\n"
+  |> List.map String.strip
+  |> List.filter (fun line -> String.len line > 0)
+  |> List.map parseMass
+
+let part1 = List.fold (fun acc m -> acc + fuel m) 0 masses
+let part2 = List.fold (fun acc m -> acc + totalFuel m) 0 masses
+
+print (f"part1: {part1}")
+print (f"part2: {part2}")

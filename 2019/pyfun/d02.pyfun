@@ -1,0 +1,63 @@
+extern type Path
+extern toPath: string -> Path = pathlib.Path
+extern readText: Path -> string = pathlib.Path.read_text
+extern fail: string -> a = sys.exit
+
+let parseInt line =
+  match String.toInt line:
+    case Some n: n
+    case None: fail f"cannot parse as int: {line}"
+
+let read mem idx =
+  match List.get idx mem:
+    case Some v: v
+    case None: fail f"index {idx} out of range"
+
+let run mem pc =
+  let op = read mem pc
+  if op == 99 then mem
+  else
+    let mem1 =
+      match op:
+        case 1:
+          let dst = read mem (pc + 3)
+          let sum = read mem (read mem (pc + 1)) + read mem (read mem (pc + 2))
+          List.updateAt dst sum mem
+        case 2:
+          let dst = read mem (pc + 3)
+          let prod = read mem (read mem (pc + 1)) * read mem (read mem (pc + 2))
+          List.updateAt dst prod mem
+        case _: fail f"unknown opcode {op} at pc {pc}"
+    run mem1 (pc + 4)
+
+let runIntcode program noun verb =
+  let patched =
+    List.updateAt 1 noun (List.updateAt 2 verb program)
+  run patched 0
+
+let program =
+  readText (toPath "../input/d02.txt")
+  |> String.strip
+  |> String.split ","
+  |> List.map parseInt
+
+let resultAt0 mem = Option.withDefault 0 (List.get 0 mem)
+
+let part1 =
+  runIntcode program 12 2
+  |> resultAt0
+
+let findNounVerb =
+  let pairs =
+    Seq.collect
+      (fun noun -> Seq.map (fun verb -> (noun, verb)) (Seq.range 0 99))
+      (Seq.range 0 99)
+  Seq.find (fun (noun, verb) -> resultAt0 (runIntcode program noun verb) == 19690720) pairs
+
+let part2 =
+  match findNounVerb:
+    case Some (noun, verb): f"{100 * noun + verb}"
+    case None: "no noun/verb found"
+
+print (f"part1: {part1}")
+print (f"part2: {part2}")

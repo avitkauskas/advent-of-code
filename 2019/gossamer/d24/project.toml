@@ -1,0 +1,5 @@
+[project]
+id = "example.com/d24"
+version = "0.1.0"
+
+[dependencies]
