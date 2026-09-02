@@ -1,0 +1,250 @@
+use std::fs
+use "example.com/intcode"
+
+fn parse_input(input: String) -> Vec<i64> {
+    input.trim().split(',').map(|s| s.to_i64().unwrap())
+}
+
+fn fresh(program: Vec<i64>) -> intcode::IntcodeComputer {
+    let mut c = intcode::IntcodeComputer::new(program)
+    c.run([])
+    c
+}
+
+fn read_new_output(computer: &mut intcode::IntcodeComputer, from: i64) -> String {
+    let mut text = ""
+    let outputs = computer.all_outputs()
+    for i in from..outputs.len() {
+        text += (outputs[i] as char).to_string()
+    }
+    text
+}
+
+fn send_cmd(computer: &mut intcode::IntcodeComputer, cmd: String) -> String {
+    let mut inputs: Vec<i64> = #[]
+    for b in cmd.bytes() {
+        inputs.push(b as i64)
+    }
+    inputs.push(10)
+    let before = computer.output_count()
+    computer.run(inputs)
+    read_new_output(computer, before)
+}
+
+struct RoomInfo {
+    name: String
+    items: Vec<String>
+    exits: Vec<String>
+}
+
+fn parse_room(output: String) -> RoomInfo {
+    let mut name = ""
+    let mut items: Vec<String> = #[]
+    let mut exits: Vec<String> = #[]
+    let mut section = ""
+
+    for line in output.lines() {
+        let trimmed = line.trim()
+        if trimmed.starts_with("== ") && trimmed.ends_with(" ==") {
+            name = trimmed.substring(3, trimmed.len() - 3)
+            continue
+        }
+        if trimmed == "Doors here lead:" {
+            section = "doors"
+            continue
+        }
+        if trimmed == "Items here:" {
+            section = "items"
+            continue
+        }
+        if trimmed.starts_with("- ") {
+            let item = trimmed.substring(2, trimmed.len())
+            match section {
+                "doors" => exits.push(item)
+                "items" => items.push(item)
+                _ => ()
+            }
+            continue
+        }
+        if trimmed.len() > 0 && section.len() > 0 {
+            section = ""
+        }
+    }
+    RoomInfo { name: name, items: items, exits: exits }
+}
+
+fn reverse_cmd(cmd: String) -> String {
+    match cmd {
+        "north" => "south"
+        "south" => "north"
+        "east" => "west"
+        "west" => "east"
+        _ => panic("unknown direction: {}", cmd)
+    }
+}
+
+fn reverse_path(path: Vec<String>) -> Vec<String> {
+    path.rev().map(reverse_cmd)
+}
+
+fn is_dangerous(item: String) -> bool {
+    #{ "giant electromagnet", "molten lava", "photons", "escape pod", "infinite loop" }
+        .contains(item)
+}
+
+fn explore(
+    computer: &mut intcode::IntcodeComputer
+    path: Vec<String>
+    output: String
+    visited: &mut Set<String>
+    paths: &mut Map<String, Vec<String>>
+    room_items: &mut Map<String, Vec<String>>
+    checkpoint: &mut Option<String>
+) {
+    let info = parse_room(output)
+    if visited.contains(info.name) {
+        return
+    }
+    visited.insert(info.name)
+    paths.insert(info.name, path)
+    room_items.insert(info.name, info.items)
+    if info.name.to_lowercase().contains("checkpoint") {
+        *checkpoint = Some(info.name)
+    }
+
+    for exit in info.exits {
+        let out = send_cmd(computer, exit)
+        let mut new_path = path
+        new_path.push(exit)
+        explore(computer, new_path, out, visited, paths, room_items, checkpoint)
+        send_cmd(computer, reverse_cmd(exit))
+    }
+}
+
+fn walk_path(computer: &mut intcode::IntcodeComputer, path: Vec<String>) -> String {
+    let mut last = ""
+    for dir in path {
+        last = send_cmd(computer, dir)
+    }
+    last
+}
+
+fn extract_password(output: String) -> Option<String> {
+    for line in output.lines() {
+        if line.to_lowercase().contains("typing") || line.to_lowercase().contains("keypad") {
+            for word in line.split_whitespace() {
+                if word.len() >= 1 && word.bytes().all(|b| b >= b'0' && b <= b'9') {
+                    return Some(word)
+                }
+            }
+        }
+    }
+    None
+}
+
+fn collect_safe_items(
+    program: Vec<i64>
+    paths: Map<String, Vec<String>>
+    room_items: Map<String, Vec<String>>
+) -> Vec<(Vec<String>, String)> {
+    let mut safe: Vec<(Vec<String>, String)> = #[]
+    for (room, items) in room_items.iter() {
+        for item in items {
+            if is_dangerous(item) {
+                continue
+            }
+            let mut computer = fresh(program)
+            walk_path(&mut computer, paths.get(room).unwrap())
+            let out = send_cmd(&mut computer, format("take {}", item))
+            if !["ejected", "melted", "electrified", "safely", "destroyed", "die", "stuck"]
+                .any(|k| out.contains(k)) {
+                safe.push((paths.get(room).unwrap(), item))
+            }
+        }
+    }
+    safe
+}
+
+fn brute_force(
+    computer: &mut intcode::IntcodeComputer
+    airlock: String
+    items: Vec<String>
+) -> String {
+    let n = items.len()
+    for mask in 0..(1_i64 << n) {
+        let mut to_drop: Vec<String> = #[]
+        for i in 0..n {
+            if mask & (1_i64 << i) != 0 {
+                to_drop.push(items[i])
+            }
+        }
+        for item in to_drop {
+            send_cmd(computer, format("drop {}", item))
+        }
+        let out = send_cmd(computer, airlock)
+        if let Some(password) = extract_password(out) {
+            return password
+        }
+        for item in to_drop {
+            send_cmd(computer, format("take {}", item))
+        }
+    }
+    panic("no password found")
+}
+
+fn main() {
+    let input = fs::read_to_string("../input/d25.txt").unwrap()
+    let program = parse_input(input)
+
+    let mut computer = fresh(program)
+    let start_output = read_new_output(&mut computer, 0)
+
+    let mut visited: Set<String> = Set::new()
+    let mut paths: Map<String, Vec<String>> = Map::new()
+    let mut room_items: Map<String, Vec<String>> = Map::new()
+    let mut checkpoint: Option<String> = None
+
+    explore(
+        &mut computer
+        #[]
+        start_output
+        &mut visited
+        &mut paths
+        &mut room_items
+        &mut checkpoint
+    )
+
+    let checkpoint_name = checkpoint.unwrap()
+    let safe_items_list = collect_safe_items(program, paths, room_items)
+
+    let mut final_computer = fresh(program)
+    let mut all_items: Vec<String> = #[]
+    for (p, item) in safe_items_list {
+        walk_path(&mut final_computer, p)
+        send_cmd(&mut final_computer, format("take {}", item))
+        walk_path(&mut final_computer, reverse_path(p))
+        all_items.push(item)
+    }
+    let checkpoint_output = walk_path(&mut final_computer, paths.get(checkpoint_name).unwrap())
+    let ck_info = parse_room(checkpoint_output)
+
+    let mut airlock = ""
+    for exit in ck_info.exits {
+        let out = send_cmd(&mut final_computer, exit)
+        send_cmd(&mut final_computer, reverse_cmd(exit))
+        let low = out.to_lowercase()
+        if low.contains("heavier")
+        || low.contains("lighter")
+        || low.contains("alert")
+        || low.contains("checkpoint")
+        || low.contains("password") {
+            airlock = exit
+        }
+    }
+    if airlock.len() == 0 {
+        airlock = "north"
+    }
+
+    let password = brute_force(&mut final_computer, airlock, all_items)
+    println("Part 1: Password: {}", password)
+}

@@ -7,6 +7,7 @@ pub struct IntcodeComputer {
     inputs: Vec<i64>
     input_position: i64
     halted: bool
+    lastpos: i64
 }
 
 impl IntcodeComputer {
@@ -24,6 +25,7 @@ impl IntcodeComputer {
             inputs: #[]
             input_position: 0
             halted: false
+            lastpos: -1
         }
     }
 
@@ -72,6 +74,9 @@ impl IntcodeComputer {
         self.inputs.extend(new_inputs)
         loop {
             let instruction = self.read_memory(self.position)
+            if self.position != self.lastpos {
+                self.lastpos = self.position
+            }
             let opcode = instruction % 100
             let modes = self.get_parameter_modes(instruction)
 
