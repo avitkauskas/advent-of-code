@@ -1,0 +1,150 @@
+from sys import argv
+
+EMPTY = 0
+CLAY = 1
+FLOW = 2
+REST = 3
+
+grid = []
+W = 0
+min_x = 0
+max_x = 0
+min_y = 0
+max_y = 0
+
+def idx(x, y):
+    return (x - min_x) + y * W
+
+def fill(x, y, dir):
+    global grid
+    if y + 1 > max_y:
+        return
+    below = grid[idx(x, y + 1)]
+    if below != CLAY and below != REST:
+        # water falls down
+        if grid[idx(x, y + 1)] == EMPTY:
+            grid[idx(x, y + 1)] = FLOW
+        fill(x, y + 1, 0)
+        return
+    # spread left
+    if dir == 0 or dir == -1:
+        if x - 1 >= min_x:
+            lc = grid[idx(x - 1, y)]
+            if lc == EMPTY:
+                grid[idx(x - 1, y)] = FLOW
+                fill(x - 1, y, -1)
+    # spread right
+    if dir == 0 or dir == 1:
+        if x + 1 <= max_x:
+            rc = grid[idx(x + 1, y)]
+            if rc == EMPTY:
+                grid[idx(x + 1, y)] = FLOW
+                fill(x + 1, y, 1)
+    # containment check when starting a row
+    if dir == 0:
+        # bounded left?
+        lx = x
+        while lx >= min_x and grid[idx(lx, y)] != CLAY:
+            below_c = grid[idx(lx, y + 1)]
+            if below_c != CLAY and below_c != REST:
+                return
+            lx -= 1
+        if lx < min_x:
+            return
+        # bounded right?
+        rx = x
+        while rx <= max_x and grid[idx(rx, y)] != CLAY:
+            below_c = grid[idx(rx, y + 1)]
+            if below_c != CLAY and below_c != REST:
+                return
+            rx += 1
+        if rx > max_x:
+            return
+        # both sides bounded -> settle
+        for cx in range(lx + 1, rx):
+            grid[idx(cx, y)] = REST
+        # water rises: refill at the row above
+        if y - 1 >= 0:
+            if grid[idx(x, y - 1)] == EMPTY:
+                grid[idx(x, y - 1)] = FLOW
+            fill(x, y - 1, 0)
+
+def read_input(path):
+    return open(path).read().strip().split('\n')
+
+def solve(lines):
+    global grid, W, min_x, max_x, min_y, max_y
+    i_min_x = 10**9
+    i_max_x = -10**9
+    i_min_y = 10**9
+    i_max_y = -10**9
+    clay_cells = []
+    for line in lines:
+        parts = line.split(', ')
+        a = parts[0]
+        b = parts[1]
+        pa = a.split('=')
+        pb = b.split('=')
+        if pa[0] == 'x':
+            x = int(pa[1])
+            if '..' in pb[1]:
+                rng = pb[1].split('..')
+                y0 = int(rng[0]); y1 = int(rng[1])
+            else:
+                y0 = int(pb[1]); y1 = int(pb[1])
+            for y in range(y0, y1 + 1):
+                clay_cells.append((x, y))
+            if x < i_min_x: i_min_x = x
+            if x > i_max_x: i_max_x = x
+            if y0 < i_min_y: i_min_y = y0
+            if y1 > i_max_y: i_max_y = y1
+        else:
+            y = int(pa[1])
+            if '..' in pb[1]:
+                rng = pb[1].split('..')
+                x0 = int(rng[0]); x1 = int(rng[1])
+            else:
+                x0 = int(pb[1]); x1 = int(pb[1])
+            for x in range(x0, x1 + 1):
+                clay_cells.append((x, y))
+            if y < i_min_y: i_min_y = y
+            if y > i_max_y: i_max_y = y
+            if x0 < i_min_x: i_min_x = x0
+            if x1 > i_max_x: i_max_x = x1
+
+    pad = 5
+    min_x = i_min_x - pad
+    max_x = i_max_x + pad
+    min_y = i_min_y
+    max_y = i_max_y
+    W = max_x - min_x + 1
+    H = max_y + 1
+
+    grid = [EMPTY] * (W * H)
+    for i in range(W * H):
+        grid[i] = EMPTY
+
+    for (x, y) in clay_cells:
+        grid[idx(x, y)] = CLAY
+
+    fill(500, 0, 0)
+
+    count = 0
+    rest_count = 0
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            c = grid[idx(x, y)]
+            if c == FLOW or c == REST:
+                count += 1
+            if c == REST:
+                rest_count += 1
+    return count, rest_count
+
+def main():
+    path = argv[1] if len(argv) > 1 else "../data/input17.txt"
+    lines = read_input(path)
+    count, rest_count = solve(lines)
+    print(count)
+    print(rest_count)
+
+main()

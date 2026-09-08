@@ -233,11 +233,8 @@ fn main() {
         let out = send_cmd(&mut final_computer, exit)
         send_cmd(&mut final_computer, reverse_cmd(exit))
         let low = out.to_lowercase()
-        if low.contains("heavier")
-        || low.contains("lighter")
-        || low.contains("alert")
-        || low.contains("checkpoint")
-        || low.contains("password") {
+        let signals = #["heavier", "lighter", "alert", "checkpoint", "password"]
+        if signals.any(|s| low.contains(s)) {
             airlock = exit
         }
     }

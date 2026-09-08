@@ -1,0 +1,177 @@
+use std::env
+use std::errors
+use std::fs
+use std::strings
+
+const EMPTY: i64 = 0
+const CLAY: i64 = 1
+const FLOW: i64 = 2
+const REST: i64 = 3
+
+struct Sim {
+    grid: Vec<i64>
+    w: i64
+    min_x: i64
+    max_x: i64
+    min_y: i64
+    max_y: i64
+}
+
+impl Sim {
+    fn idx(self, x: i64, y: i64) -> i64 {
+        (x - self.min_x) + y * self.w
+    }
+
+    fn cell(self, x: i64, y: i64) -> i64 {
+        self.grid[self.idx(x, y)]
+    }
+
+    fn set(&mut self, x: i64, y: i64, v: i64) {
+        let i = self.idx(x, y)
+        self.grid[i] = v
+    }
+
+    fn fill(&mut self, x0: i64, y0: i64) {
+        let mut stack: Stack<(i64, i64, i64, i64)> = Stack::new()
+        stack.push((x0, y0, 0, 0))
+        'fill: while let Some((x, y, dir, phase)) = stack.pop() {
+            if phase == 0 {
+                if y + 1 > self.max_y {
+                    continue
+                }
+                let below = self.cell(x, y + 1)
+                if below != CLAY && below != REST {
+                    if self.cell(x, y + 1) == EMPTY {
+                        self.set(x, y + 1, FLOW)
+                    }
+                    stack.push((x, y + 1, 0, 0))
+                    continue
+                }
+                stack.push((x, y, dir, 1))
+                if (dir == 0 || dir == 1) && x + 1 <= self.max_x && self.cell(x + 1, y) == EMPTY {
+                    self.set(x + 1, y, FLOW)
+                    stack.push((x + 1, y, 1, 0))
+                }
+                if (dir == 0 || dir == -1) && x - 1 >= self.min_x && self.cell(x - 1, y) == EMPTY {
+                    self.set(x - 1, y, FLOW)
+                    stack.push((x - 1, y, -1, 0))
+                }
+            } else {
+                if dir != 0 {
+                    continue
+                }
+                let mut lx = x
+                while lx >= self.min_x && self.cell(lx, y) != CLAY {
+                    let bc = self.cell(lx, y + 1)
+                    if bc != CLAY && bc != REST {
+                        continue 'fill
+                    }
+                    lx -= 1
+                }
+                if lx < self.min_x {
+                    continue
+                }
+                let mut rx = x
+                while rx <= self.max_x && self.cell(rx, y) != CLAY {
+                    let bc = self.cell(rx, y + 1)
+                    if bc != CLAY && bc != REST {
+                        continue 'fill
+                    }
+                    rx += 1
+                }
+                if rx > self.max_x {
+                    continue
+                }
+                for cx in lx + 1..rx {
+                    self.set(cx, y, REST)
+                }
+                if y - 1 >= 0 {
+                    if self.cell(x, y - 1) == EMPTY {
+                        self.set(x, y - 1, FLOW)
+                    }
+                    stack.push((x, y - 1, 0, 0))
+                }
+            }
+        }
+    }
+}
+
+fn parse_sim(lines: Vec<String>) -> Sim {
+    let mut i_min_x: i64 = 1_000_000_000
+    let mut i_max_x: i64 = -1_000_000_000
+    let mut i_min_y: i64 = 1_000_000_000
+    let mut i_max_y: i64 = -1_000_000_000
+    let mut clay_cells: Vec<(i64, i64)> = #[]
+    for line in lines {
+        let parts = strings::split(line, ", ")
+        let pa = strings::split(parts[0], "=")
+        let pb = strings::split(parts[1], "=")
+        if pa[0] == "x" {
+            let x = pa[1].to_i64().unwrap_or(0)
+            let rng = strings::split(pb[1], "..")
+            let y0 = rng[0].to_i64().unwrap_or(0)
+            let y1 = if rng.len() > 1 { rng[1].to_i64().unwrap_or(0) } else { y0 }
+            for y in y0..y1 + 1 {
+                clay_cells.push((x, y))
+            }
+            if x < i_min_x { i_min_x = x }
+            if x > i_max_x { i_max_x = x }
+            if y0 < i_min_y { i_min_y = y0 }
+            if y1 > i_max_y { i_max_y = y1 }
+        } else {
+            let y = pa[1].to_i64().unwrap_or(0)
+            let rng = strings::split(pb[1], "..")
+            let x0 = rng[0].to_i64().unwrap_or(0)
+            let x1 = if rng.len() > 1 { rng[1].to_i64().unwrap_or(0) } else { x0 }
+            for x in x0..x1 + 1 {
+                clay_cells.push((x, y))
+            }
+            if y < i_min_y { i_min_y = y }
+            if y > i_max_y { i_max_y = y }
+            if x0 < i_min_x { i_min_x = x0 }
+            if x1 > i_max_x { i_max_x = x1 }
+        }
+    }
+
+    let pad: i64 = 5
+    let min_x = i_min_x - pad
+    let max_x = i_max_x + pad
+    let max_y = i_max_y
+    let w = max_x - min_x + 1
+    let grid = #[EMPTY; w * (max_y + 1)]
+    let mut sim = Sim { grid: grid, w: w, min_x: min_x, max_x: max_x, min_y: i_min_y, max_y: max_y }
+    for (x, y) in clay_cells {
+        sim.set(x, y, CLAY)
+    }
+    sim
+}
+
+fn solve(sim: Sim) -> (i64, i64) {
+    let mut count: i64 = 0
+    let mut rest: i64 = 0
+    for y in sim.min_y..sim.max_y + 1 {
+        for x in sim.min_x..sim.max_x + 1 {
+            let c = sim.cell(x, y)
+            if c == FLOW || c == REST {
+                count += 1
+            }
+            if c == REST {
+                rest += 1
+            }
+        }
+    }
+    (count, rest)
+}
+
+fn main() -> Result<(), errors::Error> {
+    let args = env::args()
+    let path = if args.len() > 0 { args[0] } else { "../data/input17.txt" }
+    let text = fs::read_to_string(path)?
+    let lines = strings::lines(text)
+    let mut sim = parse_sim(lines)
+    sim.fill(500, 0)
+    let count, rest = solve(sim)
+    println("{}", count)
+    println("{}", rest)
+    Ok(())
+}

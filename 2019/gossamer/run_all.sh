@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OUTFILE="run_all_results.txt"
-TIMEOUT_S=10
+TIMEOUT_S=20
 TMPD="$(mktemp -d)"
 trap 'rm -rf "$TMPD"' EXIT
 
@@ -114,7 +114,6 @@ for i in $(seq -w 1 25); do
       echo
     } >> "$OUTFILE" 2>&1
   fi
-  echo
 done
 
 echo "Done. Results written to $OUTFILE"

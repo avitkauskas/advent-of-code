@@ -169,8 +169,7 @@ fn shortest_four_robots(mut grid: Vec<Vec<char>>) -> i64 {
                     if doors & mask == doors {
                         let mut nps = ps
                         nps[i] = j
-                        let nstate = nps[0] | (nps[1] << 5) | (nps[2] << 10)
-                        | (nps[3] << 15) | ((mask | bit) << 20)
+                        let nstate = nps[0] | (nps[1] << 5) | (nps[2] << 10) | (nps[3] << 15) | ((mask | bit) << 20)
                         let ncost = cost + d
                         if !best.contains(nstate) || ncost < best.get(nstate).unwrap() {
                             best.insert(nstate, ncost)
